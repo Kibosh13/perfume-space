@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /admin.php
+Disallow: /api.php
+Disallow: /data/
+Disallow: /includes/
+
+Host: https://perfume-space.ru
+Sitemap: https://perfume-space.ru/sitemap.xml

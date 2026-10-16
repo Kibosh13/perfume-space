@@ -1,0 +1,5 @@
+# Заказы и настройки содержат персональные данные — закрыты от прямого доступа
+Require all denied
+<FilesMatch "\.xlsx$">
+  Require all granted
+</FilesMatch>
