@@ -62,7 +62,7 @@ function contact_value(?string $value, bool $link = false): string {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Perfume Space — оригинальная парфюмерия на распив от 5 мл</title>
-  <meta name="description" content="Оригинальная нишевая и люксовая парфюмерия на распив 5, 10 и 15 мл: 966 ароматов, 90 брендов. Декларация соответствия, «Честный ЗНАК», доставка по России.">
+  <meta name="description" content="Оригинальная нишевая и люксовая парфюмерия на распив 5, 10 и 15 мл: более 1 000 ароматов, 90 брендов. Декларация соответствия, «Честный ЗНАК», доставка по России.">
   <link rel="canonical" href="<?= h($site) ?>/">
   <?php if (is_filled($webmaster)): ?><meta name="yandex-verification" content="<?= h($webmaster) ?>"><?php endif; ?>
   <meta name="theme-color" content="#05070c">
@@ -74,7 +74,7 @@ function contact_value(?string $value, bool $link = false): string {
   <meta property="og:locale" content="ru_RU">
   <meta property="og:site_name" content="Perfume Space">
   <meta property="og:title" content="Perfume Space — оригинальная парфюмерия на распив">
-  <meta property="og:description" content="966 оригинальных ароматов 90 брендов на распив от 5 мл. Подарочная упаковка и доставка по всей России.">
+  <meta property="og:description" content="Более 1 000 оригинальных ароматов 90 брендов на распив от 5 мл. Подарочная упаковка и доставка по всей России.">
   <meta property="og:url" content="<?= h($site) ?>/">
   <meta property="og:image" content="<?= h($site) ?>/assets/img/og-cover.jpg">
   <meta property="og:image:width" content="1200">
@@ -82,9 +82,9 @@ function contact_value(?string $value, bool $link = false): string {
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="preload" as="image" href="/assets/img/hero.webp" fetchpriority="high">
-  <link rel="stylesheet" href="/assets/css/style.css?v=3">
+  <link rel="stylesheet" href="/assets/css/style.css?v=4">
 
   <script type="application/ld+json">
   <?= json_encode([
@@ -96,14 +96,11 @@ function contact_value(?string $value, bool $link = false): string {
       'foundingDate' => '2018',
       'url' => $site . '/',
       'logo' => $site . '/assets/img/logo-white.png',
-      'address' => [
-          '@type' => 'PostalAddress',
-          'addressLocality' => 'Воронеж',
-          'streetAddress' => 'ул. Переверткина 35, кв 165',
-          'addressCountry' => 'RU',
-      ],
       'areaServed' => 'RU',
-      'sameAs' => array_values(array_filter([$avito, is_filled($c['vk'] ?? '') ? $c['vk'] : null])),
+      'sameAs' => array_values(array_filter([
+          is_filled($c['telegram'] ?? '') ? $c['telegram'] : null,
+          is_filled($c['vk'] ?? '') ? $c['vk'] : null,
+      ])),
   ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) ?>
   </script>
 
@@ -145,13 +142,12 @@ function contact_value(?string $value, bool $link = false): string {
 <div class="topbar">
   <div class="container topbar__inner">
     <div class="topbar__track">
-      <span>Парфюм 2 мл в подарок при заказе от <?= format_price($gift_from) ?></span>
-      <span>Скидка <?= $bundle_pct ?>% от <?= $bundle_min ?> позиций в заказе</span>
-      <span>Доставка по всей России</span>
-    </div>
-    <div class="topbar__meta">
-      <span>Ежедневно <?= h($config['work_hours'] ?? '') ?></span>
-      <?php if ($avito): ?><a href="<?= h($avito) ?>" target="_blank" rel="noopener">5,0 · 3 398 отзывов на Авито</a><?php endif; ?>
+      <?php for ($i = 0; $i < 2; $i++): ?>
+        <span>Парфюм 2 мл в подарок при заказе от <?= format_price($gift_from) ?></span>
+        <span>Скидка <?= $bundle_pct ?>% от <?= $bundle_min ?> позиций в заказе</span>
+        <span>Доставка по всей России</span>
+        <span>Ежедневно <?= h($config['work_hours'] ?? '') ?></span>
+      <?php endfor; ?>
     </div>
   </div>
 </div>
@@ -161,8 +157,7 @@ function contact_value(?string $value, bool $link = false): string {
     <a href="/" class="logo" aria-label="Perfume Space — на главную">
       <img src="/assets/img/logo-white.png" alt="Perfume Space" width="56" height="44">
       <span class="logo__word">
-        <span class="logo__name">Perfume Space</span>
-        <span class="logo__sub">Парфюмерия на распив</span>
+        <span class="logo__name">Perfume<br>Space</span>
       </span>
     </a>
 
@@ -212,9 +207,9 @@ function contact_value(?string $value, bool $link = false): string {
       </div>
       <div class="hero__facts">
         <div class="fact"><div class="fact__val">2018</div><div class="fact__lbl">работаем с этого года</div></div>
-        <div class="fact"><div class="fact__val">5 000<small>+</small></div><div class="fact__lbl">покупателей</div></div>
-        <div class="fact"><div class="fact__val">5,0</div><div class="fact__lbl">3 398 отзывов на Авито</div></div>
-        <div class="fact"><div class="fact__val"><?= count($products) ?></div><div class="fact__lbl">ароматов · <?= count($brands) ?> брендов</div></div>
+        <div class="fact"><div class="fact__val">10 000<small>+</small></div><div class="fact__lbl">покупателей</div></div>
+        <div class="fact"><div class="fact__val">5,0</div><div class="fact__lbl">более 3 500 отзывов</div></div>
+        <div class="fact"><div class="fact__val">1 000<small>+</small></div><div class="fact__lbl">ароматов · <?= count($brands) ?> брендов</div></div>
       </div>
     </div>
   </section>
@@ -439,7 +434,7 @@ function contact_value(?string $value, bool $link = false): string {
       <div class="trust__docs reveal">
         <div class="doc"><svg class="icon"><use href="#i-doc"/></svg><h3>Декларация соответствия</h3><p>Номер декларации: <?= contact_value($legal['declaration_number'] ?? '') ?></p></div>
         <div class="doc"><svg class="icon"><use href="#i-code"/></svg><h3>«Честный ЗНАК»</h3><p>Продукция с государственной маркировкой.</p></div>
-        <div class="doc"><svg class="icon"><use href="#i-star"/></svg><h3>С 2018 года</h3><p>На Авито с июня 2018: рейтинг 5,0 и 3 398 отзывов.</p></div>
+        <div class="doc"><svg class="icon"><use href="#i-star"/></svg><h3>С 2018 года</h3><p>Рейтинг 5,0 и более 3 500 отзывов покупателей.</p></div>
         <div class="doc"><svg class="icon"><use href="#i-gift"/></svg><h3>Подарочная упаковка</h3><p>Каждый заказ — в подарочной упаковке.</p></div>
       </div>
     </div>
@@ -501,8 +496,7 @@ function contact_value(?string $value, bool $link = false): string {
         <h2 class="visually-hidden" id="reviews-title">Отзывы покупателей</h2>
         <div class="rating__big">5,0</div>
         <div class="rating__stars"><?php for ($i = 0; $i < 5; $i++): ?><svg class="icon"><use href="#i-star"/></svg><?php endfor; ?></div>
-        <p>3 398 отзывов покупателей в профиле Perfume Space на Авито</p>
-        <?php if ($avito): ?><a href="<?= h($avito) ?>" target="_blank" rel="noopener" class="btn btn--line">Читать отзывы</a><?php endif; ?>
+        <p>Более 3 500 отзывов покупателей</p>
       </div>
       <div class="quotes">
         <?php foreach (($config['reviews'] ?? []) as $rev): ?>
@@ -514,7 +508,7 @@ function contact_value(?string $value, bool $link = false): string {
         <?php endforeach; ?>
         <figure class="quote reveal">
           <div class="quote__mark">“</div>
-          <blockquote class="quote__text">Более 5 000 покупателей с 2018 года.</blockquote>
+          <blockquote class="quote__text">Более 10 000 покупателей с 2018 года.</blockquote>
           <figcaption class="quote__meta">Perfume Space</figcaption>
         </figure>
       </div>
@@ -584,22 +578,15 @@ function contact_value(?string $value, bool $link = false): string {
       </div>
       <div class="contacts">
         <div class="contact">
-          <h3>Почта и телефон</h3>
-          <?php if (is_filled($email)): ?><a class="big" href="mailto:<?= h($email) ?>"><?= h($email) ?></a><?php else: ?><p>Почта: <?= contact_value($email) ?></p><?php endif; ?>
-          <p>Телефон: <?= contact_value($c['phone'] ?? '') ?></p>
-        </div>
-        <div class="contact">
-          <h3>Мессенджеры и соцсети</h3>
-          <p>Мессенджер: <?= contact_value($c['telegram'] ?? '', true) ?></p>
-          <p>ВКонтакте: <?= contact_value($c['vk'] ?? '', true) ?></p>
-          <?php if ($avito): ?><a href="<?= h($avito) ?>" target="_blank" rel="noopener" data-goal="avito_click">Магазин на Авито</a><?php endif; ?>
+          <h3>Написать нам</h3>
+          <?php if (is_filled($c['telegram'] ?? '')): ?><a class="big" href="<?= h($c['telegram']) ?>" target="_blank" rel="noopener">Telegram</a><?php endif; ?>
+          <?php if (is_filled($c['vk'] ?? '')): ?><p><a href="<?= h($c['vk']) ?>" target="_blank" rel="noopener">ВКонтакте</a></p><?php endif; ?>
+          <?php if (is_filled($email)): ?><p><a href="mailto:<?= h($email) ?>"><?= h($email) ?></a></p><?php endif; ?>
         </div>
         <div class="contact">
           <h3>Реквизиты</h3>
           <p><?= h($legal['entity'] ?? '') ?></p>
           <p>ИНН <?= h($legal['inn'] ?? '') ?></p>
-          <p>ОГРНИП <?= contact_value($legal['ogrnip'] ?? '') ?></p>
-          <p><?= h($legal['address'] ?? '') ?></p>
         </div>
       </div>
     </div>
@@ -610,7 +597,7 @@ function contact_value(?string $value, bool $link = false): string {
   <div class="container">
     <div class="footer__top">
       <div class="footer__about">
-        <a href="/" class="logo"><img src="/assets/img/logo-white.png" alt="Perfume Space" width="56" height="44" loading="lazy"><span class="logo__word"><span class="logo__name">Perfume Space</span><span class="logo__sub">с 2018 года</span></span></a>
+        <a href="/" class="logo"><img src="/assets/img/logo-white.png" alt="Perfume Space" width="56" height="44" loading="lazy"><span class="logo__word"><span class="logo__name">Perfume<br>Space</span></span></a>
         <p>Оригинальная нишевая и люксовая парфюмерия на распив с доставкой по всей России.</p>
       </div>
       <div>
@@ -711,6 +698,6 @@ function contact_value(?string $value, bool $link = false): string {
     bundlePct: <?= $bundle_pct ?>
   };
 </script>
-<script src="/assets/js/app.js?v=3" defer></script>
+<script src="/assets/js/app.js?v=4" defer></script>
 </body>
 </html>

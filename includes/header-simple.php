@@ -17,8 +17,8 @@
   <link rel="icon" type="image/png" href="/assets/img/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/assets/css/style.css?v=3">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/style.css?v=4">
   <?= $page_head_extra ?? '' ?>
 </head>
 <body>
@@ -26,7 +26,7 @@
   <div class="container header__inner" style="grid-template-columns:auto 1fr">
     <a href="/" class="logo" aria-label="Perfume Space — на главную">
       <img src="/assets/img/logo-white.png" alt="Perfume Space" width="56" height="44">
-      <span class="logo__word"><span class="logo__name">Perfume Space</span><span class="logo__sub">Парфюмерия на распив</span></span>
+      <span class="logo__word"><span class="logo__name">Perfume<br>Space</span></span>
     </a>
     <div style="display:flex;justify-content:flex-end;gap:10px"><?= $page_header_actions ?? '<a href="/#catalog" class="btn btn--line btn--sm">В каталог</a>' ?></div>
   </div>

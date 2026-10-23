@@ -322,7 +322,7 @@
               <select class="input" id="oDelivery" name="delivery"><option>СДЭК</option><option>Почта России</option><option>Яндекс Доставка</option></select></div>
             <div class="field"><label for="oAddress">Город и адрес или пункт выдачи</label><input class="input" id="oAddress" name="address" autocomplete="street-address"></div>
             <div class="field"><label for="oPay">Оплата</label>
-              <select class="input" id="oPay" name="payment"><option>СБП по ссылке</option><option>Банковская карта по ссылке</option></select></div>
+              <select class="input" id="oPay" name="payment"><option>СБП</option><option>Банковская карта</option></select></div>
             <label class="consent"><input type="checkbox" name="consent" required><span>Согласен на обработку персональных данных в соответствии с <a href="/privacy.php" target="_blank">политикой конфиденциальности</a></span></label>
           </form>
         </div>`;

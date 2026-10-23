@@ -17,8 +17,7 @@ require __DIR__ . '/includes/header-simple.php';
     <h1 class="h-section">Политика конфиденциальности и оферта</h1>
 
     <h2>1. Оператор персональных данных</h2>
-    <p><?= h($legal['entity'] ?? '') ?>, ИНН <?= h($legal['inn'] ?? '') ?>, ОГРНИП <?= $tbd($legal['ogrnip'] ?? '') ?>.<br>
-    Адрес: <?= h($legal['address'] ?? '') ?>. Почта: <?= $mail ?>.</p>
+    <p><?= h($legal['entity'] ?? '') ?>, ИНН <?= h($legal['inn'] ?? '') ?>.<?php if (is_filled($email)): ?> Почта: <?= $mail ?>.<?php endif; ?></p>
 
     <h2>2. Какие данные мы собираем</h2>
     <ul>
