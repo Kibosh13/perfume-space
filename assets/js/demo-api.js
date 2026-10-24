@@ -30,14 +30,21 @@
       });
       if (!items.length) return delay({ ok: false, error: 'Товары из корзины сейчас недоступны.' });
       const discount = qty >= (CFG.bundleMin || 5) ? Math.round(subtotal * (CFG.bundlePct || 10) / 100) : 0;
-      const total = subtotal - discount;
+      const promo = (CFG.promos || []).find((p) => p.code.toUpperCase() === String(data.promo_code || '').toUpperCase());
+      const promoSum = promo ? Math.round((subtotal - discount) * promo.percent / 100) : 0;
+      const points = Math.max(0, Math.min(Number(data.points_spend) || 0, Math.floor((subtotal - discount - promoSum) * 0.5)));
+      const total = subtotal - discount - promoSum - points;
+      const gift = BY_ID.get(Number(data.gift_id));
       const book = data.order_mode === 'book';
       const order = {
         id: nextId(book ? 'BR' : 'PS'), type: book ? 'booking' : 'order', status: 'active', created_at: now(),
         delivery: data.delivery || '', payment: data.payment || '', items, subtotal, discount_bundle: discount, total,
-        gift_2ml: total >= (CFG.giftFrom || 8000), comment: '',
+        gift_2ml: !!gift && (total + points) >= (CFG.giftFrom || 8000), gift_name: gift ? gift[3] : '', comment: '',
       };
       return delay({ ok: true, order, message: `${book ? 'Бронь' : 'Заказ'} ${order.id} принят (демо-версия: заказ никуда не отправлен).` });
+    }
+    if (action === 'create_review') {
+      return delay({ ok: true, message: 'Отзыв отправлен на модерацию. На сайте он появится после проверки.' });
     }
     if (action === 'create_request') {
       const order = { id: nextId('RQ'), type: 'request', status: 'active', created_at: now(), delivery: '', payment: '', items: [], total: 0, gift_2ml: false, comment: data.request_type || 'Заявка' };

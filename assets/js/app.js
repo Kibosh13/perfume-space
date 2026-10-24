@@ -5,7 +5,7 @@
   const PRODUCTS = (CFG.products || []).map((r) => ({
     id: r[0], brand: r[1], short: r[2], name: r[3], gender: r[4],
     volumes: { 5: r[5], 10: r[6], 15: r[7] },
-    inStock: !!r[8], hit: !!r[9], image: r[10], family: r[11], discount: r[12] || 0,
+    inStock: !!r[8], hit: !!r[9], image: r[10], family: r[11], discount: r[12] || 0, newness: r[13] || 0,
   })).map((p) => {
     p.base = { ...p.volumes };
     if (p.discount) Object.keys(p.volumes).forEach((v) => { if (p.volumes[v]) p.volumes[v] = Math.round(p.volumes[v] * (100 - p.discount) / 100); });
@@ -17,6 +17,9 @@
   const GIFT_FROM = CFG.giftFrom || 8000;
   const BUNDLE_MIN = CFG.bundleMin || 5;
   const BUNDLE_PCT = CFG.bundlePct || 10;
+  const LOYALTY_PCT = CFG.loyaltyPct || 1;
+  const LOYALTY_MAX = CFG.loyaltyMax || 50;
+  const PROMOS = CFG.promos || [];
   const PAGE = 24;
   const PLACEHOLDER = '/perfume-space/assets/img/atomizer.webp';
 
@@ -40,6 +43,12 @@
     phone: load('ps_phone', ''),
     ordersTab: 'active',
     checkout: false,
+    giftId: load('ps_gift', 0),
+    pickingGift: false,
+    giftQuery: '',
+    promo: load('ps_promo', ''),
+    usePoints: false,
+    user: load('ps_user', null),
   };
 
   /* ---------- Product helpers ---------- */
@@ -105,6 +114,7 @@
     const price = (p) => (state.volume ? p.volumes[state.volume] : p.min) || 1e9;
     const sorters = {
       popular: (a, b) => (b.inStock - a.inStock) || (b.hit - a.hit) || (!!b.image - !!a.image) || a.id - b.id,
+      new: (a, b) => (b.inStock - a.inStock) || (b.newness - a.newness) || (b.id - a.id),
       price_asc: (a, b) => (b.inStock - a.inStock) || price(a) - price(b),
       price_desc: (a, b) => (b.inStock - a.inStock) || price(b) - price(a),
       name: (a, b) => a.name.localeCompare(b.name),
@@ -246,12 +256,42 @@
   };
 
   /* ---------- Cart ---------- */
+  const users = () => load('ps_users', []);
+  const saveUser = (user) => {
+    const list = users();
+    const i = list.findIndex((u) => u.email === user.email);
+    if (i >= 0) list[i] = user; else list.push(user);
+    save('ps_users', list);
+    state.user = user;
+    save('ps_user', { email: user.email });
+  };
+  const currentUser = () => state.user && users().find((u) => u.email === state.user.email);
+
+  const promoOf = (code) => PROMOS.find((p) => p.code.toUpperCase() === String(code || '').trim().toUpperCase());
+
   const totals = () => {
     let sum = 0, qty = 0;
     state.cart.forEach((i) => { const p = BY_ID.get(i.id); sum += (p.volumes[i.volume] || 0) * i.qty; qty += i.qty; });
     const discount = qty >= BUNDLE_MIN ? Math.round(sum * BUNDLE_PCT / 100) : 0;
-    const total = sum - discount;
-    return { sum, qty, discount, total, gift: total >= GIFT_FROM };
+    const user = currentUser();
+    const promo = promoOf(state.promo);
+    let promoSum = 0;
+    let promoError = '';
+    if (state.promo) {
+      if (!promo) promoError = 'Такого промокода нет';
+      else if (promo.registered_only && !user) promoError = 'Промокод для зарегистрированных';
+      else if (promo.first_order && user && user.orders.length) promoError = 'Промокод только на первый заказ';
+      else if (promo.once && user && user.usedPromos.includes(promo.code)) promoError = 'Этот промокод уже использован';
+      else promoSum = Math.round((sum - discount) * promo.percent / 100);
+    }
+    const after = sum - discount - promoSum;
+    const maxPoints = user ? Math.min(user.points, Math.floor(after * LOYALTY_MAX / 100)) : 0;
+    const points = state.usePoints ? maxPoints : 0;
+    const total = after - points;
+    const gift = after >= GIFT_FROM;
+    if (!gift) state.giftId = 0;
+    const giftProduct = gift && state.giftId ? BY_ID.get(state.giftId) : null;
+    return { sum, qty, discount, promo, promoSum, promoError, points, maxPoints, total, gift, giftProduct, user };
   };
 
   const addToCart = (id, btn) => {
@@ -286,7 +326,7 @@
     const goals = `
       <div class="goal">
         <div>
-          <div class="goal__row"><span>Подарок 2 мл от ${money(GIFT_FROM)}</span>${t.gift ? '<b class="ok">Добавлен</b>' : `<b>ещё ${money(GIFT_FROM - t.total)}</b>`}</div>
+          <div class="goal__row"><span>Подарок 2 мл от ${money(GIFT_FROM)}</span>${t.gift ? `<button type="button" class="ok" data-gift-pick="1">${t.giftProduct ? 'Изменить' : 'Выбрать'}</button>` : `<b>ещё ${money(GIFT_FROM - (t.total + t.points))}</b>`}</div>
           <div class="bar"><i style="width:${Math.min(100, t.total / GIFT_FROM * 100)}%"></i></div>
         </div>
         <div>
@@ -299,9 +339,11 @@
       <div class="totals">
         <div><span>Товары, ${t.qty} шт.</span><span>${money(t.sum)}</span></div>
         ${t.discount ? `<div class="discount"><span>Скидка ${BUNDLE_PCT}%</span><span>−${money(t.discount)}</span></div>` : ''}
-        ${t.gift ? '<div class="discount"><span>Парфюм 2 мл</span><span>в подарок</span></div>' : ''}
+        ${t.promoSum ? `<div class="discount"><span>Промокод ${esc(t.promo.code)}</span><span>−${money(t.promoSum)}</span></div>` : ''}
+        ${t.points ? `<div class="discount"><span>Баллы</span><span>−${money(t.points)}</span></div>` : ''}
+        ${t.gift ? `<div class="discount"><span>Парфюм 2 мл</span><span>${t.giftProduct ? esc(t.giftProduct.short) : 'выберите аромат'}</span></div>` : ''}
         <div class="grand"><span>Итого</span><span>${money(t.total)}</span></div>
-        <small>Доставка оплачивается по тарифу службы. Накопительную скидку применит менеджер при подтверждении.</small>
+        <small>Доставка оплачивается по тарифу службы. Скидка от ${BUNDLE_MIN} позиций применяется автоматически.</small>
       </div>`;
 
     if (state.checkout) {
@@ -323,10 +365,26 @@
             <div class="field"><label for="oAddress">Город и адрес или пункт выдачи</label><input class="input" id="oAddress" name="address" autocomplete="street-address"></div>
             <div class="field"><label for="oPay">Оплата</label>
               <select class="input" id="oPay" name="payment"><option>СБП</option><option>Банковская карта</option></select></div>
+            <div class="field"><label for="oPromo">Промокод</label>
+              <div class="promo-field"><input class="input" id="oPromo" name="promo" value="${esc(state.promo)}" placeholder="WELCOME20" autocomplete="off"><button class="btn btn--line btn--sm" type="button" data-apply-promo="1">Применить</button></div>
+              ${t.promoError ? `<small class="muted">${esc(t.promoError)}</small>` : ''}
+            </div>
+            ${t.user && t.maxPoints ? `<label class="points-line"><input type="checkbox" name="use_points" ${state.usePoints ? 'checked' : ''}> Списать ${t.maxPoints} баллов (до ${LOYALTY_MAX}% заказа)</label>` : `<p class="muted">Баллы копятся в личном кабинете: ${LOYALTY_PCT}% от чека.</p>`}
             <label class="consent"><input type="checkbox" name="consent" required><span>Согласен на обработку персональных данных в соответствии с <a href="/privacy.php" target="_blank">политикой конфиденциальности</a></span></label>
           </form>
         </div>`;
       foot.innerHTML = totalsHtml + `<button type="submit" form="orderForm" class="btn btn--primary btn--block">Подтвердить заказ</button>`;
+      return;
+    }
+
+    if (state.pickingGift && t.gift) {
+      const q = state.giftQuery.toLowerCase();
+      const list = PRODUCTS.filter((p) => p.inStock && (!q || (p.name + ' ' + p.brand).toLowerCase().includes(q))).slice(0, 40);
+      body.innerHTML = `<button type="button" class="back" data-gift-pick="0">${icon('left')} К корзине</button>
+        <p>Выберите аромат для подарка 2 мл.</p>
+        <div class="gift-pick"><input class="input" id="giftSearch" placeholder="Бренд или название" value="${esc(state.giftQuery)}"></div>
+        ${list.map((p) => `<button type="button" class="gift-hit" data-gift="${p.id}"><img src="${esc(p.image || PLACEHOLDER)}" alt=""><span><b>${esc(p.brand)}</b><br>${esc(p.short)}</span></button>`).join('')}`;
+      foot.innerHTML = '';
       return;
     }
 
@@ -346,7 +404,7 @@
             <button type="button" class="remove" data-remove="${idx}">Удалить</button>
           </div>
         </div>`;
-    }).join('') + (t.gift ? `<div class="gift-line">${icon('gift')} Парфюм 2 мл в подарок добавлен к заказу</div>` : '');
+    }).join('') + (t.gift ? `<button type="button" class="gift-line" data-gift-pick="1">${icon('gift')}<span>${t.giftProduct ? `${esc(t.giftProduct.brand)} ${esc(t.giftProduct.short)}<small>Подарок 2 мл · нажмите, чтобы изменить</small>` : 'Выбрать аромат в подарок, 2 мл'}</span></button>` : '');
     foot.innerHTML = totalsHtml + `<button type="button" class="btn btn--primary btn--block" data-checkout="1">Оформить заказ ${icon('arrow')}</button>`;
   };
 
@@ -355,10 +413,20 @@
     const err = validate(fd);
     if (err) return toast(err);
     const btn = $('#cartFoot .btn');
+    const promoField = $('#oPromo');
+    if (promoField) { state.promo = promoField.value.trim().toUpperCase(); save('ps_promo', state.promo); }
+    const pointsBox = form.querySelector('[name=use_points]');
+    state.usePoints = !!(pointsBox && pointsBox.checked);
+    const t = totals();
+    if (t.promoError) return toast(t.promoError);
+    if (t.gift && !t.giftProduct) return toast('Выберите аромат для подарка 2 мл');
     btn.disabled = true;
     const payload = Object.fromEntries(fd);
     payload.consent = fd.get('consent') === 'on';
     payload.items = state.cart;
+    payload.promo_code = t.promoSum ? t.promo.code : '';
+    payload.points_spend = t.points;
+    payload.gift_id = t.giftProduct ? t.giftProduct.id : 0;
     const res = await post('create_order', payload);
     btn.disabled = false;
     if (!res.ok) return toast(res.error || 'Не удалось отправить заказ');
@@ -366,9 +434,21 @@
     save('ps_phone', state.phone);
     state.orders.unshift(res.order);
     save('ps_orders', state.orders);
+    const user = currentUser();
+    if (user) {
+      user.orders.push(res.order.id);
+      user.points = Math.max(0, user.points - t.points) + Math.round(t.total * LOYALTY_PCT / 100);
+      if (t.promoSum) user.usedPromos.push(t.promo.code);
+      saveUser(user);
+    }
     state.cart = [];
     state.checkout = false;
+    state.giftId = 0;
+    state.promo = '';
+    state.usePoints = false;
     save('ps_cart', state.cart);
+    save('ps_gift', 0);
+    save('ps_promo', '');
     note(`${res.order.type === 'booking' ? 'Бронь' : 'Заказ'} ${res.order.id} принят`, res.message);
     goal(res.order.type === 'booking' ? 'booking_submit' : 'order_submit', { order_id: res.order.id, total: res.order.total });
     counters();
@@ -390,7 +470,7 @@
           <span class="status ${o.status === 'completed' ? 'status--done' : ''}">${STATUS[o.status] || o.status}</span>
         </div>
         ${o.items && o.items.length ? `<div class="order__items">${o.items.map((i) => `${esc(i.name)}, ${esc(i.volume)} мл × ${i.qty}`).join('<br>')}</div>` : `<div class="order__items">${esc(o.comment)}</div>`}
-        ${o.total ? `<div class="order__sum">${money(o.total)}${o.gift_2ml ? ' · подарок 2 мл' : ''}</div>` : ''}
+        ${o.total ? `<div class="order__sum">${money(o.total)}${o.gift_2ml ? ' · подарок 2 мл' + (o.gift_name ? ': ' + esc(o.gift_name) : '') : ''}</div>` : ''}
       </div>`).join('');
     $('#ordersList').innerHTML = (items || emptyBlock('box', state.ordersTab === 'active' ? 'Активных заказов нет' : 'Завершённых заказов нет', 'Здесь появятся заказы, оформленные на этом устройстве.')) + `
       <form class="lookup" id="lookupForm">
@@ -474,13 +554,14 @@
     }
   };
 
-  const PANELS = ['cart', 'favs', 'orders', 'notes', 'product', 'filters'];
+  const PANELS = ['cart', 'favs', 'orders', 'notes', 'account', 'product', 'filters'];
   const open = (id) => {
     PANELS.forEach((x) => x !== id && $('#' + x)?.classList.remove('is-open'));
     if (id === 'cart') renderCart();
     if (id === 'favs') renderFavs();
     if (id === 'orders') { renderOrders(); refreshOrders(); }
     if (id === 'notes') renderNotes();
+    if (id === 'account') renderAccount();
     $('#' + id).classList.add('is-open');
     $('#' + id).setAttribute('aria-hidden', 'false');
     $('#overlay').classList.add('is-open');
@@ -514,6 +595,70 @@
     setTimeout(() => $('#lName').focus({ preventScroll: true }), 700);
   };
 
+  /* ---------- Account, gift, questions ---------- */
+  const hashPass = (s) => {
+    let h = 5381;
+    const str = 'ps:' + s;
+    for (let i = 0; i < str.length; i++) h = ((h << 5) + h) ^ str.charCodeAt(i);
+    return (h >>> 0).toString(16);
+  };
+
+  const renderAccount = () => {
+    const user = currentUser();
+    const box = $('#accountBody');
+    if (!user) {
+      box.innerHTML = `
+        <form class="form" id="authForm">
+          <div class="seg"><label><input type="radio" name="mode" value="login" checked><span>Войти</span></label><label><input type="radio" name="mode" value="register"><span>Регистрация</span></label></div>
+          <div class="field reg" hidden><label>Имя</label><input class="input" name="name"></div>
+          <div class="field"><label>Почта</label><input class="input" name="email" type="email" required></div>
+          <div class="field reg" hidden><label>Телефон</label><input class="input" name="phone" type="tel"></div>
+          <div class="field"><label>Пароль</label><input class="input" name="password" type="password" required></div>
+          <button class="btn btn--primary btn--block" type="submit">Продолжить</button>
+        </form>`;
+      box.querySelector('#authForm').addEventListener('change', (e) => {
+        if (e.target.name !== 'mode') return;
+        box.querySelectorAll('.reg').forEach((f) => { f.hidden = e.target.value !== 'register'; });
+      });
+      return;
+    }
+    const mine = state.orders.filter((o) => user.orders.includes(o.id));
+    box.innerHTML = `
+      <p>${esc(user.name)} · ${esc(user.email)}</p>
+      <div class="totals"><div><span>Баллы</span><b>${user.points}</b></div><small>1% от каждого чека. 1 балл = 1 ₽, можно оплатить до ${LOYALTY_MAX}% заказа.</small></div>
+      <h3 style="margin:22px 0 8px;font-family:var(--serif);font-size:26px">Заказы</h3>
+      ${mine.length ? mine.map((o) => `<div class="order"><div class="order__id">${esc(o.id)}</div><div class="order__sum">${o.total ? money(o.total) : ''}</div></div>`).join('') : '<p class="muted">Покупок пока нет.</p>'}
+      <h3 style="margin:22px 0 8px;font-family:var(--serif);font-size:26px">Избранное</h3>
+      <p>${state.favs.length ? state.favs.length + ' ароматов' : 'Пока пусто'}</p>
+      <p style="margin-top:8px">В корзине: ${totals().qty} шт.</p>
+      <button class="btn btn--line" type="button" data-logout="1" style="margin-top:18px">Выйти</button>`;
+  };
+
+  const answerQuestion = (q) => {
+    const text = q.toLowerCase();
+    const hard = /доставк|оплат|возврат|чек|жалоб|оригинал|документ|менеджер|скидк|промокод|балл/.test(text);
+    const scored = PRODUCTS.map((p) => {
+      const hay = (p.brand + ' ' + p.short + ' ' + p.name).toLowerCase();
+      const words = text.split(/[^a-zа-я0-9]+/i).filter((w) => w.length > 3);
+      const score = words.reduce((n, w) => n + (hay.includes(w) ? 1 : 0), 0);
+      return { p, score };
+    }).filter((x) => x.score >= 2).sort((a, b) => b.score - a.score).slice(0, 3);
+    if (!hard && scored.length) {
+      return scored.map(({ p }) => `${p.brand} ${p.short}: ${p.inStock ? 'в наличии, от ' + money(p.min) : 'сейчас нет'}. <a href="#catalog" data-view="${p.id}">Открыть</a>`).join('<br><br>');
+    }
+    post('create_request', { name: 'Вопрос с сайта', phone: state.phone || '+70000000000', email: (currentUser() && currentUser().email) || 'question@perfume-space.ru', request_type: 'Вопрос', perfume_name: q, consent: true });
+    return 'Это лучше ответит менеджер. Вопрос передан, ответим в рабочее время.';
+  };
+
+  const askLog = (text, who) => {
+    const log = $('#askLog');
+    const el = document.createElement('div');
+    el.className = 'ask-msg ask-msg--' + who;
+    el.innerHTML = text;
+    log.appendChild(el);
+    log.scrollTop = log.scrollHeight;
+  };
+
   /* ---------- Events ---------- */
   document.addEventListener('click', (e) => {
     const t = e.target.closest('button, a, [data-view]');
@@ -538,6 +683,12 @@
     if (d.untag) { const k = d.untag; setFilter({ [k]: typeof state[k] === 'boolean' ? false : '' }); return; }
     if (d.reset !== undefined) { resetFilters(); return; }
     if (d.checkout) { state.checkout = d.checkout === '1'; renderCart(); return; }
+    if (d.giftPick !== undefined) { state.pickingGift = d.giftPick === '1'; renderCart(); return; }
+    if (d.gift) { state.giftId = Number(d.gift); state.pickingGift = false; save('ps_gift', state.giftId); renderCart(); return; }
+    if (d.applyPromo !== undefined) { state.promo = ($('#oPromo').value || '').trim().toUpperCase(); save('ps_promo', state.promo); renderCart(); return; }
+    if (d.copy) { navigator.clipboard && navigator.clipboard.writeText(d.copy); state.promo = d.copy; save('ps_promo', state.promo); toast('Промокод ' + d.copy + ' скопирован'); return; }
+    if (d.ask !== undefined) { $('#askBox').hidden = d.ask !== '1'; if (d.ask === '1' && !$('#askLog').childElementCount) askLog('Спросите про аромат — подскажу по каталогу. Сложный вопрос передам менеджеру.', 'bot'); return; }
+    if (d.logout) { state.user = null; save('ps_user', null); renderAccount(); return; }
     if (d.qty) {
       const line = state.cart[Number(d.idx)];
       line.qty += Number(d.qty);
@@ -571,6 +722,14 @@
   $('#fBrand').addEventListener('click', (e) => { const b = e.target.closest('.f-opt'); if (b) setFilter({ brand: b.dataset.v }); });
   $('#fReset').addEventListener('click', resetFilters);
   $('#more').addEventListener('click', () => { state.shown += PAGE; renderCatalog(); });
+  document.addEventListener('input', (e) => {
+    if (e.target.id !== 'giftSearch') return;
+    state.giftQuery = e.target.value;
+    const pos = e.target.selectionStart;
+    renderCart();
+    const el = $('#giftSearch');
+    if (el) { el.focus(); el.setSelectionRange(pos, pos); }
+  });
 
   $('#orderTabs').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { state.ordersTab = b.dataset.v; renderOrders(); } });
 
@@ -590,6 +749,43 @@
       state.phone = String(fd.get('phone'));
       save('ps_phone', state.phone);
       refreshOrders(String(fd.get('id')).trim().toUpperCase(), state.phone);
+    }
+    if (form.id === 'authForm') {
+      e.preventDefault();
+      const fd = new FormData(form);
+      const email = String(fd.get('email') || '').trim().toLowerCase();
+      const pass = hashPass(String(fd.get('password') || ''));
+      const list = users();
+      if (fd.get('mode') === 'register') {
+        if (!String(fd.get('name') || '').trim()) return toast('Укажите имя');
+        if (list.some((u) => u.email === email)) return toast('Такая почта уже зарегистрирована');
+        saveUser({ email, name: String(fd.get('name')).trim(), phone: String(fd.get('phone') || ''), pass, points: 0, orders: [], usedPromos: [] });
+        toast('Кабинет создан');
+      } else {
+        const found = list.find((u) => u.email === email && u.pass === pass);
+        if (!found) return toast('Неверная почта или пароль');
+        state.user = { email }; save('ps_user', state.user);
+      }
+      renderAccount();
+    }
+    if (form.id === 'reviewForm') {
+      e.preventDefault();
+      const fd = new FormData(form);
+      if (!String(fd.get('name') || '').trim()) return toast('Укажите имя');
+      if (String(fd.get('text') || '').trim().length < 10) return toast('Напишите отзыв чуть подробнее');
+      if (fd.get('consent') !== 'on') return toast('Нужно согласие на публикацию');
+      const res = await post('create_review', { name: fd.get('name'), perfume: fd.get('perfume'), text: fd.get('text'), rating: fd.get('rating'), consent: true });
+      if (!res.ok) return toast(res.error || 'Не удалось отправить отзыв');
+      form.reset();
+      toast(res.message);
+    }
+    if (form.id === 'askForm') {
+      e.preventDefault();
+      const q = String(new FormData(form).get('q') || '').trim();
+      if (!q) return;
+      askLog(esc(q), 'user');
+      form.reset();
+      askLog(answerQuestion(q), 'bot');
     }
     if (form.id === 'leadForm') {
       e.preventDefault();
