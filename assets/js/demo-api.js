@@ -23,7 +23,7 @@
         const r = BY_ID.get(Number(it.id));
         const base = r && r[VOL_IDX[it.volume]];
         if (!r || !r[8] || !base) return;
-        const price = Math.round(base * (100 - (r[12] || 0)) / 100);
+        const price = Math.round(Math.round(base * (100 - (r[12] || 0)) / 100) * (100 - ({ 10: 3, 15: 7 }[it.volume] || 0)) / 100);
         const q = Math.max(1, Math.min(20, Number(it.qty) || 1));
         subtotal += price * q; qty += q;
         items.push({ id: r[0], name: r[3], volume: String(it.volume), price, qty: q });
