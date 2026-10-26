@@ -52,6 +52,20 @@
   };
 
   /* ---------- Product helpers ---------- */
+  const VOL_OFF = { 5: 0, 10: 3, 15: 7 };
+  const volPrice = (p, vol) => {
+    const base = p.volumes[vol] || 0;
+    const off = VOL_OFF[vol] || 0;
+    return off ? Math.round(base * (100 - off) / 100) : base;
+  };
+  const volBtns = (p) => {
+    const v = volOf(p);
+    return ['5', '10', '15'].map((x) => {
+      const off = VOL_OFF[x] || 0;
+      return `<button type="button" class="vol ${x === v && p.volumes[x] ? 'is-active' : ''}" data-vol="${x}" data-id="${p.id}" ${p.volumes[x] && p.inStock ? '' : 'disabled'}>${x} мл${off && p.volumes[x] ? `<span class="vol__off">−${off}%</span>` : ''}</button>`;
+    }).join('');
+  };
+
   const volOf = (p) => {
     const v = state.picked[p.id];
     if (v && p.volumes[v]) return v;
@@ -66,9 +80,10 @@
 
   const cardHtml = (p) => {
     const v = volOf(p);
-    const price = p.volumes[v];
+    const price = volPrice(p, v);
+    const old = price < (p.volumes[v] || 0) ? p.volumes[v] : (p.discount ? p.base[v] : 0);
     const fav = state.favs.includes(p.id);
-    const vols = ['5', '10', '15'].map((x) => `<button type="button" class="vol ${x === v && p.volumes[x] ? 'is-active' : ''}" data-vol="${x}" data-id="${p.id}" ${p.volumes[x] && p.inStock ? '' : 'disabled'}>${x} мл</button>`).join('');
+    const vols = volBtns(p);
     const badges = [p.discount && p.inStock ? `<span class="badge badge--sale">−${p.discount}%</span>` : '', p.hit && p.inStock ? '<span class="badge badge--hit">Хит</span>' : '', !p.inStock ? '<span class="badge badge--out">Нет в наличии</span>' : ''].join('');
     return `
       <article class="card ${p.inStock ? '' : 'card__out'}">
@@ -82,7 +97,7 @@
         <div class="vols">${vols}</div>
         <div class="card__foot">
           ${p.inStock
-            ? `<div class="price">${money(price)}${p.discount ? `<s>${money(p.base[v])}</s>` : ''}<small>за ${v} мл</small></div>
+            ? `<div class="price">${money(price)}${old ? `<s>${money(old)}</s>` : ''}<small>за ${v} мл</small></div>
                <div class="card__actions">
                  <button type="button" class="icon-btn" data-book="${p.id}" aria-label="Забронировать" title="Забронировать">${icon('box')}</button>
                  <button type="button" class="icon-btn icon-btn--primary" data-add="${p.id}" aria-label="В корзину" title="В корзину">${icon('bag')}</button>
@@ -105,13 +120,13 @@
       if (state.stock && !p.inStock) return false;
       if (state.fav && !state.favs.includes(p.id)) return false;
       if (min !== null || max !== null) {
-        const price = state.volume ? p.volumes[state.volume] : p.min;
+        const price = state.volume ? volPrice(p, state.volume) : p.min;
         if (!price || (min !== null && price < min) || (max !== null && price > max)) return false;
       }
       if (q && !(p.name + ' ' + p.brand).toLowerCase().includes(q)) return false;
       return true;
     });
-    const price = (p) => (state.volume ? p.volumes[state.volume] : p.min) || 1e9;
+    const price = (p) => (state.volume ? volPrice(p, state.volume) : p.min) || 1e9;
     const sorters = {
       popular: (a, b) => (b.inStock - a.inStock) || (b.hit - a.hit) || (!!b.image - !!a.image) || a.id - b.id,
       new: (a, b) => (b.inStock - a.inStock) || (b.newness - a.newness) || (b.id - a.id),
@@ -197,7 +212,9 @@
     const p = BY_ID.get(id);
     if (!p) return;
     const v = volOf(p);
-    const vols = ['5', '10', '15'].map((x) => `<button type="button" class="vol ${x === v && p.volumes[x] ? 'is-active' : ''}" data-vol="${x}" data-id="${p.id}" ${p.volumes[x] && p.inStock ? '' : 'disabled'}>${x} мл</button>`).join('');
+    const price = volPrice(p, v);
+    const old = price < (p.volumes[v] || 0) ? p.volumes[v] : (p.discount ? p.base[v] : 0);
+    const vols = volBtns(p);
     const genders = { 'Женские': 'Для неё', 'Мужские': 'Для него', 'Унисекс': 'Унисекс' };
     $('#productBody').innerHTML = `
       <div class="pv">
@@ -208,7 +225,7 @@
           <div class="pv__meta"><span>${genders[p.gender] || p.gender}</span><span>${p.inStock ? 'В наличии' : 'Нет в наличии'}</span>${p.family ? `<span>${esc(p.family)}</span>` : ''}</div>
           <div class="vols">${vols}</div>
           ${p.inStock
-            ? `<div class="pv__price">${money(p.volumes[v])}${p.discount ? `<s>${money(p.base[v])}</s>` : ''}<small>за ${v} мл</small></div>
+            ? `<div class="pv__price">${money(price)}${old ? `<s>${money(old)}</s>` : ''}<small>за ${v} мл</small></div>
                <div class="pv__actions">
                  <button type="button" class="btn btn--primary" data-add="${p.id}">В корзину ${icon('bag')}</button>
                  <button type="button" class="btn btn--line" data-book="${p.id}">Бронь</button>
@@ -271,7 +288,7 @@
 
   const totals = () => {
     let sum = 0, qty = 0;
-    state.cart.forEach((i) => { const p = BY_ID.get(i.id); sum += (p.volumes[i.volume] || 0) * i.qty; qty += i.qty; });
+    state.cart.forEach((i) => { const p = BY_ID.get(i.id); sum += volPrice(p, i.volume) * i.qty; qty += i.qty; });
     const discount = qty >= BUNDLE_MIN ? Math.round(sum * BUNDLE_PCT / 100) : 0;
     const user = currentUser();
     const promo = promoOf(state.promo);
@@ -396,10 +413,10 @@
           <div>
             <div class="line-item__brand">${esc(p.brand)}</div>
             <div class="line-item__name">${esc(p.short)}</div>
-            <div class="line-item__vol">${i.volume} мл · ${money(p.volumes[i.volume])}</div>
+            <div class="line-item__vol">${i.volume} мл · ${money(volPrice(p, i.volume))}</div>
           </div>
           <div class="line-item__right">
-            <div class="line-item__sum">${money(p.volumes[i.volume] * i.qty)}</div>
+            <div class="line-item__sum">${money(volPrice(p, i.volume) * i.qty)}</div>
             <div class="qty"><button type="button" data-qty="-1" data-idx="${idx}" aria-label="Меньше">−</button><span>${i.qty}</span><button type="button" data-qty="1" data-idx="${idx}" aria-label="Больше">+</button></div>
             <button type="button" class="remove" data-remove="${idx}">Удалить</button>
           </div>
