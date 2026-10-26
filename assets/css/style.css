@@ -182,6 +182,7 @@ ul { list-style: none; }
 .hero__ctas { display: flex; flex-wrap: wrap; gap: 14px; }
 
 .hero__facts { display: grid; grid-template-columns: repeat(4, 1fr); margin-top: 80px; border-top: 1px solid var(--line-2); }
+.facts { margin-top: 0; }
 .fact { padding: 24px 24px 0 0; }
 .fact + .fact { padding-left: 24px; border-left: 1px solid var(--line); }
 .fact__val { font-family: var(--serif); font-size: 34px; line-height: 1; font-weight: 500; }
