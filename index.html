@@ -25,7 +25,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="preload" as="image" href="/perfume-space/assets/img/hero.webp" fetchpriority="high">
-  <link rel="stylesheet" href="/perfume-space/assets/css/style.css?v=4">
+  <link rel="stylesheet" href="/perfume-space/assets/css/style.css?v=5">
 
   <script type="application/ld+json">
   {
@@ -132,7 +132,17 @@
     <div class="hero__bg"><img src="/perfume-space/assets/img/hero.webp" alt="" width="1920" height="1080" fetchpriority="high"></div>
     <div class="container hero__content">
       <div class="hero__text">
-        <h1 class="h-display">Оригинальная парфюмерия на распив от 5 мл</h1>
+                <div class="slides" id="slides">
+                      <article class="slide">
+              <div class="slide__body">
+                <div class="slide__badge">Скидка 20%</div>
+                <h2>Заказывайте со скидкой!</h2>
+                <p>Получите скидку на первый заказ в Perfume Space по промокоду</p>
+                <button type="button" class="slide__code" data-copy="WELCOME20">WELCOME20 <svg class="icon"><use href="#i-doc"/></svg></button>
+              </div>
+            </article>
+                  </div>
+                <h1 class="h-display">Оригинальная парфюмерия на распив от 5 мл</h1>
         <p class="lead">Более 1 000 ароматов 90 парфюмерных домов. Оригинальность подтверждена декларацией соответствия и маркировкой «Честный ЗНАК». Подарочная упаковка и быстрая отправка по всей России.</p>
         <div class="hero__ctas">
           <a href="#catalog" class="btn btn--primary" data-goal="hero_catalog">Выбрать аромат <svg class="icon icon--arrow"><use href="#i-arrow"/></svg></a>
@@ -382,17 +392,7 @@
 
   <section class="section section--panel" id="promo" aria-labelledby="promo-title">
     <div class="container">
-            <div class="slides" id="slides">
-                  <article class="slide">
-            <div class="slide__body">
-              <div class="slide__badge">Скидка 20%</div>
-              <h2>Заказывайте со скидкой!</h2>
-              <p>Получите скидку на первый заказ в Perfume Space по промокоду</p>
-              <button type="button" class="slide__code" data-copy="WELCOME20">WELCOME20 <svg class="icon"><use href="#i-doc"/></svg></button>
-            </div>
-          </article>
-              </div>
-            <div class="promo reveal">
+      <div class="promo reveal">
         <div class="promo__media"><img src="/perfume-space/assets/img/gift.webp" alt="Подарочная упаковка Perfume Space" loading="lazy" width="1000" height="750"></div>
         <div class="promo__body">
           <div class="eyebrow">Акции</div>
