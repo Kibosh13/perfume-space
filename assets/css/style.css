@@ -240,8 +240,9 @@ ul { list-style: none; }
 .card__name { font-family: var(--serif); font-size: 21px; font-weight: 500; line-height: 1.15; min-height: 2.3em; margin-bottom: 16px; cursor: pointer; }
 .card__name:hover { color: var(--blue-soft); }
 .card__out .card__name { color: var(--text-2); }
-.vols { display: flex; gap: 6px; margin-bottom: 18px; }
-.vol { flex: 1; height: 34px; border: 1px solid var(--line-2); border-radius: 2px; font-size: 12px; font-weight: 600; color: var(--text-2); transition: all .2s; }
+.vols { display: flex; gap: 6px; margin: 10px 0 18px; }
+.vol { position: relative; flex: 1; height: 34px; border: 1px solid var(--line-2); border-radius: 2px; font-size: 12px; font-weight: 600; color: var(--text-2); transition: all .2s; }
+.vol__off { position: absolute; top: -8px; right: 3px; color: #ff5a5a; font-size: 10px; font-weight: 700; line-height: 1; background: var(--ink); padding: 0 2px; }
 .vol:hover:not(:disabled) { border-color: var(--text-2); color: var(--text); }
 .vol.is-active { border-color: var(--blue); background: rgba(61,100,255,.14); color: #fff; }
 .vol:disabled { opacity: .28; cursor: not-allowed; }
