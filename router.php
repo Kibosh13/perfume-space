@@ -1,6 +1,8 @@
 <?php
 /**
- * Local PHP built-in server router (supports 301 redirects, static files, and custom 404.php)
+ * Роутер для встроенного сервера PHP (локальная разработка):
+ * php -S 127.0.0.1:8085 -t . router.php
+ * На хостинге то же самое делает .htaccess.
  */
 require_once __DIR__ . '/includes/functions.php';
 handle_legacy_redirects();
@@ -8,13 +10,9 @@ handle_legacy_redirects();
 $uri = urldecode(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
 $file = __DIR__ . $uri;
 
-if (str_starts_with($uri, '/includes/') || (str_starts_with($uri, '/data/') && !str_ends_with($uri, '.xlsx'))) {
+if (str_starts_with($uri, '/includes/') || str_starts_with($uri, '/data/') || str_starts_with($uri, '/reports/') || str_starts_with($uri, '/tools/')) {
     require __DIR__ . '/404.php';
     return true;
-}
-
-if ($uri !== '/' && file_exists($file) && !is_dir($file)) {
-    return false; // serve static file or existing .php script
 }
 
 if ($uri === '/' || $uri === '/index.php') {
@@ -22,6 +20,14 @@ if ($uri === '/' || $uri === '/index.php') {
     return true;
 }
 
-// Custom 404 page
-require __DIR__ . '/404.php';
+if ($uri === '/sitemap.xml') {
+    require __DIR__ . '/site.php';
+    return true;
+}
+
+if (file_exists($file) && !is_dir($file)) {
+    return false; // статика или существующий .php
+}
+
+require __DIR__ . '/site.php';
 return true;

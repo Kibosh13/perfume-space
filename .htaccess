@@ -1,25 +1,45 @@
-# Perfume Space — Apache Configuration & 301 Redirects from Old Tilda Site
+# Perfume Space — Apache: ЧПУ, 301-редиректы со старого сайта на Tilda
 Options -Indexes
 DirectoryIndex index.php
+AddDefaultCharset UTF-8
 
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
 
-  # 301 Redirects from old perfume-space.ru (Tilda) pages to new structure
-  RewriteRule ^women/?$ /?gender=Женские#catalog [R=301,L,NE]
-  RewriteRule ^men/?$ /?gender=Мужские#catalog [R=301,L,NE]
-  RewriteRule ^unisex/?$ /?gender=Унисекс#catalog [R=301,L,NE]
-  RewriteRule ^brands/?$ /#brands [R=301,L,NE]
+  # 301 со старых адресов Tilda
+  RewriteRule ^women/?$ /category/women_parfum/ [R=301,L]
+  RewriteRule ^men/?$ /category/men_parfum/ [R=301,L]
+  RewriteRule ^unisex/?$ /category/unisex/ [R=301,L]
   RewriteRule ^discount/?$ /#promo [R=301,L,NE]
   RewriteRule ^present/?$ /#promo [R=301,L,NE]
   RewriteRule ^reviews/?$ /#reviews [R=301,L,NE]
+  RewriteRule ^catalog/?$ /#catalog [R=301,L,NE]
   RewriteRule ^index\.html$ / [R=301,L]
+  RewriteRule ^privacy\.php$ /privacy/ [R=301,L]
+
+  # Служебные папки закрыты
+  RewriteRule ^(includes|data|reports|tools)/ - [F,L]
+
+  # Динамическая карта сайта и данные каталога
+  RewriteRule ^sitemap\.xml$ site.php [L]
+  RewriteRule ^catalog\.js$ site.php [L]
+
+  # Всё остальное, чего нет на диске, — в фронт-контроллер
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^ site.php [L,QSA]
 </IfModule>
 
 ErrorDocument 404 /404.php
 
-# Compression for fast loading
 <IfModule mod_deflate.c>
   AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css application/javascript application/json image/svg+xml
+</IfModule>
+
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType image/webp "access plus 30 days"
+  ExpiresByType text/css "access plus 7 days"
+  ExpiresByType application/javascript "access plus 7 days"
 </IfModule>

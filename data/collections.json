@@ -1,0 +1,618 @@
+[
+  {
+    "slug": "novyj-god",
+    "title": "Ароматы на Новый год",
+    "h1": "Ароматы на Новый год",
+    "menu": [
+      "Подборки"
+    ],
+    "rules": {},
+    "ids": [
+      877,
+      594,
+      846,
+      64,
+      876,
+      241,
+      862,
+      385,
+      595,
+      173
+    ],
+    "sort": 1,
+    "active": true,
+    "home_block": true,
+    "intro": "Тёплые, пряные и сладкие ароматы для праздничных вечеров и подарков. Подборку собирает команда Perfume Space.",
+    "seo_text": "",
+    "meta_title": "",
+    "meta_description": "",
+    "image": ""
+  },
+  {
+    "slug": "autumn",
+    "title": "Лучшие осенние ароматы 2026",
+    "h1": "Лучшие осенние ароматы 2026",
+    "menu": [
+      "Парфюмерия"
+    ],
+    "rules": {
+      "season": "Осень"
+    },
+    "ids": [],
+    "sort": 10,
+    "active": true,
+    "home_block": false,
+    "intro": "Ароматы, которые раскрываются в прохладную погоду: древесные, пряные, амбровые.",
+    "seo_text": "",
+    "meta_title": "",
+    "meta_description": "",
+    "image": ""
+  },
+  {
+    "slug": "women_parfum",
+    "title": "Женская парфюмерия",
+    "h1": "Женские духи на распив",
+    "menu": [
+      "Парфюмерия"
+    ],
+    "rules": {
+      "gender": [
+        "Женские"
+      ]
+    },
+    "ids": [],
+    "sort": 11,
+    "active": true,
+    "home_block": false,
+    "intro": "",
+    "seo_text": "",
+    "meta_title": "",
+    "meta_description": "",
+    "image": ""
+  },
+  {
+    "slug": "men_parfum",
+    "title": "Мужская парфюмерия",
+    "h1": "Мужские духи на распив",
+    "menu": [
+      "Парфюмерия"
+    ],
+    "rules": {
+      "gender": [
+        "Мужские"
+      ]
+    },
+    "ids": [],
+    "sort": 12,
+    "active": true,
+    "home_block": false,
+    "intro": "",
+    "seo_text": "",
+    "meta_title": "",
+    "meta_description": "",
+    "image": ""
+  },
+  {
+    "slug": "unisex",
+    "title": "Парфюмерия унисекс",
+    "h1": "Ароматы унисекс на распив",
+    "menu": [
+      "Парфюмерия"
+    ],
+    "rules": {
+      "gender": [
+        "Унисекс"
+      ]
+    },
+    "ids": [],
+    "sort": 13,
+    "active": true,
+    "home_block": false,
+    "intro": "",
+    "seo_text": "",
+    "meta_title": "",
+    "meta_description": "",
+    "image": ""
+  },
+  {
+    "slug": "nishevaya-parfyumeriya",
+    "title": "Селективная / нишевая парфюмерия",
+    "h1": "Нишевая парфюмерия на распив",
+    "menu": [
+      "Парфюмерия",
+      "Категории"
+    ],
+    "rules": {
+      "segment": "niche"
+    },
+    "ids": [],
+    "sort": 14,
+    "active": true,
+    "home_block": false,
+    "intro": "",
+    "seo_text": "",
+    "meta_title": "",
+    "meta_description": "",
+    "image": ""
+  },
+  {
+    "slug": "shlejfovye-duhi",
+    "title": "Шлейфовая парфюмерия",
+    "h1": "Шлейфовые духи",
+    "menu": [
+      "Парфюмерия"
+    ],
+    "rules": {
+      "flag": "sillage"
+    },
+    "ids": [],
+    "sort": 15,
+    "active": true,
+    "home_block": false,
+    "intro": "",
+    "seo_text": "",
+    "meta_title": "",
+    "meta_description": "",
+    "image": ""
+  },
+  {
+    "slug": "new-perfumes",
+    "title": "Новинки",
+    "h1": "Новинки парфюмерии",
+    "menu": [
+      "Парфюмерия"
+    ],
+    "rules": {
+      "flag": "new"
+    },
+    "ids": [],
+    "sort": 16,
+    "active": true,
+    "home_block": false,
+    "intro": "",
+    "seo_text": "",
+    "meta_title": "",
+    "meta_description": "",
+    "image": ""
+  },
+  {
+    "slug": "bestsellers",
+    "title": "Хиты продаж",
+    "h1": "Хиты продаж",
+    "menu": [
+      "Парфюмерия"
+    ],
+    "rules": {
+      "flag": "hit"
+    },
+    "ids": [],
+    "sort": 17,
+    "active": true,
+    "home_block": false,
+    "intro": "",
+    "seo_text": "",
+    "meta_title": "",
+    "meta_description": "",
+    "image": ""
+  },
+  {
+    "slug": "sale",
+    "title": "Распродажа",
+    "h1": "Распродажа парфюмерии",
+    "menu": [
+      "Парфюмерия"
+    ],
+    "rules": {
+      "flag": "sale"
+    },
+    "ids": [],
+    "sort": 18,
+    "active": true,
+    "home_block": false,
+    "intro": "",
+    "seo_text": "",
+    "meta_title": "",
+    "meta_description": "",
+    "image": ""
+  },
+  {
+    "slug": "elitnaya-parfyumeriya",
+    "title": "Люкс / элитная парфюмерия",
+    "h1": "Элитная парфюмерия на распив",
+    "menu": [
+      "Категории"
+    ],
+    "rules": {
+      "segment": "luxury"
+    },
+    "ids": [],
+    "sort": 20,
+    "active": true,
+    "home_block": false,
+    "intro": "",
+    "seo_text": "",
+    "meta_title": "",
+    "meta_description": "",
+    "image": ""
+  },
+  {
+    "slug": "vostochnaya-parfyumeriya",
+    "title": "Восточная / арабская парфюмерия",
+    "h1": "Арабская парфюмерия",
+    "menu": [
+      "Категории"
+    ],
+    "rules": {
+      "segment": "arabic"
+    },
+    "ids": [],
+    "sort": 21,
+    "active": true,
+    "home_block": false,
+    "intro": "",
+    "seo_text": "",
+    "meta_title": "",
+    "meta_description": "",
+    "image": ""
+  },
+  {
+    "slug": "vintazhnaya-parfyumeriya",
+    "title": "Винтажная парфюмерия",
+    "h1": "Винтажная парфюмерия",
+    "menu": [
+      "Категории"
+    ],
+    "rules": {
+      "segment": "vintage"
+    },
+    "ids": [],
+    "sort": 22,
+    "active": true,
+    "home_block": false,
+    "intro": "",
+    "seo_text": "",
+    "meta_title": "",
+    "meta_description": "",
+    "image": ""
+  },
+  {
+    "slug": "eau-de-toilette",
+    "title": "Туалетная вода",
+    "h1": "Туалетная вода",
+    "menu": [
+      "Концентрация"
+    ],
+    "rules": {
+      "concentration": "Туалетная вода"
+    },
+    "ids": [],
+    "sort": 30,
+    "active": true,
+    "home_block": false,
+    "intro": "",
+    "seo_text": "",
+    "meta_title": "",
+    "meta_description": "",
+    "image": ""
+  },
+  {
+    "slug": "perfume-water",
+    "title": "Парфюмерная вода",
+    "h1": "Парфюмерная вода",
+    "menu": [
+      "Концентрация"
+    ],
+    "rules": {
+      "concentration": "Парфюмерная вода"
+    },
+    "ids": [],
+    "sort": 31,
+    "active": true,
+    "home_block": false,
+    "intro": "",
+    "seo_text": "",
+    "meta_title": "",
+    "meta_description": "",
+    "image": ""
+  },
+  {
+    "slug": "perfume",
+    "title": "Духи",
+    "h1": "Духи",
+    "menu": [
+      "Концентрация"
+    ],
+    "rules": {
+      "concentration": "Духи"
+    },
+    "ids": [],
+    "sort": 32,
+    "active": true,
+    "home_block": false,
+    "intro": "",
+    "seo_text": "",
+    "meta_title": "",
+    "meta_description": "",
+    "image": ""
+  },
+  {
+    "slug": "cologne",
+    "title": "Одеколон",
+    "h1": "Одеколон",
+    "menu": [
+      "Концентрация"
+    ],
+    "rules": {
+      "concentration": "Одеколон"
+    },
+    "ids": [],
+    "sort": 33,
+    "active": true,
+    "home_block": false,
+    "intro": "",
+    "seo_text": "",
+    "meta_title": "",
+    "meta_description": "",
+    "image": ""
+  },
+  {
+    "slug": "floral",
+    "title": "Цветочные ароматы",
+    "h1": "Цветочные ароматы",
+    "menu": [
+      "Группы"
+    ],
+    "rules": {
+      "accord": "Цветочный"
+    },
+    "ids": [],
+    "sort": 40,
+    "active": true,
+    "home_block": false,
+    "intro": "",
+    "seo_text": "",
+    "meta_title": "",
+    "meta_description": "",
+    "image": ""
+  },
+  {
+    "slug": "woody",
+    "title": "Древесные ароматы",
+    "h1": "Древесные ароматы",
+    "menu": [
+      "Группы"
+    ],
+    "rules": {
+      "accord": "Древесный"
+    },
+    "ids": [],
+    "sort": 41,
+    "active": true,
+    "home_block": false,
+    "intro": "",
+    "seo_text": "",
+    "meta_title": "",
+    "meta_description": "",
+    "image": ""
+  },
+  {
+    "slug": "citrus",
+    "title": "Цитрусовые ароматы",
+    "h1": "Цитрусовые ароматы",
+    "menu": [
+      "Группы"
+    ],
+    "rules": {
+      "accord": "Цитрусовый"
+    },
+    "ids": [],
+    "sort": 42,
+    "active": true,
+    "home_block": false,
+    "intro": "",
+    "seo_text": "",
+    "meta_title": "",
+    "meta_description": "",
+    "image": ""
+  },
+  {
+    "slug": "musky",
+    "title": "Мускусные ароматы",
+    "h1": "Мускусные ароматы",
+    "menu": [
+      "Группы"
+    ],
+    "rules": {
+      "accord": "Мускусный"
+    },
+    "ids": [],
+    "sort": 43,
+    "active": true,
+    "home_block": false,
+    "intro": "",
+    "seo_text": "",
+    "meta_title": "",
+    "meta_description": "",
+    "image": ""
+  },
+  {
+    "slug": "fresh",
+    "title": "Свежие ароматы",
+    "h1": "Свежие ароматы",
+    "menu": [
+      "Группы"
+    ],
+    "rules": {
+      "accord": "Свежий"
+    },
+    "ids": [],
+    "sort": 44,
+    "active": true,
+    "home_block": false,
+    "intro": "",
+    "seo_text": "",
+    "meta_title": "",
+    "meta_description": "",
+    "image": ""
+  },
+  {
+    "slug": "fruity",
+    "title": "Фруктовые ароматы",
+    "h1": "Фруктовые ароматы",
+    "menu": [
+      "Группы"
+    ],
+    "rules": {
+      "accord": "Фруктовый"
+    },
+    "ids": [],
+    "sort": 45,
+    "active": true,
+    "home_block": false,
+    "intro": "",
+    "seo_text": "",
+    "meta_title": "",
+    "meta_description": "",
+    "image": ""
+  },
+  {
+    "slug": "fougere",
+    "title": "Фужерные ароматы",
+    "h1": "Фужерные ароматы",
+    "menu": [
+      "Группы"
+    ],
+    "rules": {
+      "accord": "Фужерный"
+    },
+    "ids": [],
+    "sort": 46,
+    "active": true,
+    "home_block": false,
+    "intro": "",
+    "seo_text": "",
+    "meta_title": "",
+    "meta_description": "",
+    "image": ""
+  },
+  {
+    "slug": "oriental",
+    "title": "Восточные ароматы",
+    "h1": "Восточные ароматы",
+    "menu": [
+      "Группы"
+    ],
+    "rules": {
+      "accord": "Восточный"
+    },
+    "ids": [],
+    "sort": 47,
+    "active": true,
+    "home_block": false,
+    "intro": "",
+    "seo_text": "",
+    "meta_title": "",
+    "meta_description": "",
+    "image": ""
+  },
+  {
+    "slug": "green",
+    "title": "Зелёные ароматы",
+    "h1": "Зелёные ароматы",
+    "menu": [
+      "Группы"
+    ],
+    "rules": {
+      "accord": "Зелёный"
+    },
+    "ids": [],
+    "sort": 48,
+    "active": true,
+    "home_block": false,
+    "intro": "",
+    "seo_text": "",
+    "meta_title": "",
+    "meta_description": "",
+    "image": ""
+  },
+  {
+    "slug": "leather",
+    "title": "Кожаные ароматы",
+    "h1": "Кожаные ароматы",
+    "menu": [
+      "Группы"
+    ],
+    "rules": {
+      "accord": "Кожаный"
+    },
+    "ids": [],
+    "sort": 49,
+    "active": true,
+    "home_block": false,
+    "intro": "",
+    "seo_text": "",
+    "meta_title": "",
+    "meta_description": "",
+    "image": ""
+  },
+  {
+    "slug": "oud",
+    "title": "Удовые ароматы",
+    "h1": "Удовые ароматы",
+    "menu": [
+      "Группы"
+    ],
+    "rules": {
+      "accord": "Удовый"
+    },
+    "ids": [],
+    "sort": 50,
+    "active": true,
+    "home_block": false,
+    "intro": "",
+    "seo_text": "",
+    "meta_title": "",
+    "meta_description": "",
+    "image": ""
+  },
+  {
+    "slug": "spicy",
+    "title": "Пряные ароматы",
+    "h1": "Пряные ароматы",
+    "menu": [
+      "Группы"
+    ],
+    "rules": {
+      "accord": "Пряный"
+    },
+    "ids": [],
+    "sort": 51,
+    "active": true,
+    "home_block": false,
+    "intro": "",
+    "seo_text": "",
+    "meta_title": "",
+    "meta_description": "",
+    "image": ""
+  },
+  {
+    "slug": "chypre",
+    "title": "Шипровые ароматы",
+    "h1": "Шипровые ароматы",
+    "menu": [
+      "Группы"
+    ],
+    "rules": {
+      "accord": "Шипровый"
+    },
+    "ids": [],
+    "sort": 52,
+    "active": true,
+    "home_block": false,
+    "intro": "",
+    "seo_text": "",
+    "meta_title": "",
+    "meta_description": "",
+    "image": ""
+  }
+]

@@ -3,11 +3,12 @@
  * Perfume Space — Простая панель управления без CMS (Цены, Товары, Тексты, Заказы)
  */
 session_start();
-require_once __DIR__ . '/includes/functions.php';
+require_once __DIR__ . '/includes/layout.php';
 
 $config = get_site_config();
 $products = get_products();
 $orders = get_orders();
+$reviews = get_reviews();
 
 $default_pass = 'perfume2026';
 $flash = '';
@@ -35,6 +36,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['admin_login'])) {
 
 $is_auth = !empty($_SESSION['ps_admin_auth']);
 
+// Защита форм от подделки запросов (CSRF): токен добавляется во все POST-формы автоматически
+if (empty($_SESSION['ps_csrf'])) {
+    $_SESSION['ps_csrf'] = bin2hex(random_bytes(16));
+}
+if ($is_auth && $_SERVER['REQUEST_METHOD'] === 'POST' && !hash_equals($_SESSION['ps_csrf'], (string)($_POST['_csrf'] ?? ''))) {
+    http_response_code(400);
+    exit('Форма устарела. Обновите страницу и попробуйте ещё раз.');
+}
+ob_start(fn($html) => preg_replace('/(<form\b[^>]*method="post"[^>]*>)/i', '$1<input type="hidden" name="_csrf" value="' . $_SESSION['ps_csrf'] . '">', $html));
+
+if ($is_auth && isset($_GET['export']) && $_GET['export'] === 'csv') {
+    require_once __DIR__ . '/includes/admin-actions.php';
+}
+
 if ($is_auth && isset($_GET['report'])) {
     $file = __DIR__ . '/reports/Сверка с Авито.xlsx';
     if (is_file($file)) {
@@ -48,6 +63,7 @@ if ($is_auth && isset($_GET['report'])) {
 // Handle Authenticated Admin Actions
 if ($is_auth && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $act = $_POST['admin_action'] ?? '';
+    require __DIR__ . '/includes/admin-actions.php';
 
     // 1. Save Site Texts, Promos & Contacts
     if ($act === 'save_config') {
@@ -157,27 +173,28 @@ if ($is_auth && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
             array_unshift($products, [
                 'id'          => $new_id,
-                'slug'        => 'perfume-' . $new_id,
+                'slug'        => slugify($name) . '-' . $new_id,
                 'brand'       => $brand,
                 'name'        => $name,
                 'short_name'  => $name,
                 'gender'      => trim((string)($_POST['gender'] ?? 'Унисекс')),
-                'family'      => trim((string)($_POST['family'] ?? 'Древесные')),
-                'notes'       => [
-                    'top'   => trim((string)($_POST['notes_top'] ?? 'Бергамот, Пряности')),
-                    'heart' => trim((string)($_POST['notes_heart'] ?? 'Роза, Пачули, Амбра')),
-                    'base'  => trim((string)($_POST['notes_base'] ?? 'Сандал, Мускус, Ваниль'))
-                ],
+                'family'      => '',
+                'notes'       => ['top' => '', 'heart' => '', 'base' => ''],
+                'tags'        => ['new'],
                 'volumes'     => $vols,
                 'old_volumes' => [],
                 'min_price'   => !empty($vols) ? min($vols) : 0,
                 'in_stock'    => isset($_POST['in_stock']),
-                'is_starter'  => true,
+                'is_starter'  => false,
+                'image'       => '',
+                'avito_url'   => '',
                 'is_hit'      => isset($_POST['is_hit']),
                 'discount'    => max(0, (int)($_POST['discount'] ?? 0))
             ]);
             save_products($products);
-            $flash = "Новый аромат «{$name}» добавлен в каталог!";
+            $flash = "Новый аромат «{$name}» добавлен в каталог и отмечен как новинка. Заполните карточку: фото, ноты, описание.";
+            header('Location: /admin.php?tab=product&id=' . $new_id);
+            exit;
         }
     }
 
@@ -202,6 +219,42 @@ if ($is_auth && $_SERVER['REQUEST_METHOD'] === 'POST') {
         save_orders($orders);
         $flash = "Статус заказа {$oid} изменён!";
     }
+
+    if ($act === 'add_review') {
+        $text = trim((string)($_POST['text'] ?? ''));
+        $author = trim((string)($_POST['author'] ?? ''));
+        if ($author !== '' && $text !== '') {
+            $perfume = mb_substr(trim((string)($_POST['perfume'] ?? '')), 0, 160);
+            $rp = $perfume !== '' ? (resolve_ids($perfume, $products)[0] ?? 0) : 0;
+            $reviews[] = [
+                'id' => 'RV-' . date('ymd-His'),
+                'author' => mb_substr($author, 0, 80),
+                'product_id' => $rp,
+                'perfume' => $perfume,
+                'text' => mb_substr($text, 0, 1000),
+                'rating' => max(1, min(5, (int)($_POST['rating'] ?? 5))),
+                'status' => 'published',
+                'source' => 'admin',
+                'created_at' => date('d.m.Y H:i'),
+            ];
+            save_reviews($reviews);
+            $flash = 'Отзыв опубликован на сайте.';
+        }
+    }
+
+    if ($act === 'moderate_review') {
+        $rid = trim((string)($_POST['review_id'] ?? ''));
+        $status = ($_POST['status'] ?? '') === 'published' ? 'published' : 'rejected';
+        foreach ($reviews as &$rev) {
+            if (($rev['id'] ?? '') === $rid) {
+                $rev['status'] = $status;
+                break;
+            }
+        }
+        unset($rev);
+        save_reviews($reviews);
+        $flash = $status === 'published' ? 'Отзыв опубликован.' : 'Отзыв отклонён.';
+    }
 }
 
 $tab = $_GET['tab'] ?? 'products';
@@ -224,7 +277,7 @@ $display_products = array_slice($filtered_products, 0, 60);
   <meta name="robots" content="noindex, nofollow">
   <link rel="icon" type="image/png" href="/assets/img/favicon.png">
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/assets/css/style.css?v=4">
+  <link rel="stylesheet" href="/assets/css/style.css?v=<?= @filemtime(__DIR__ . '/assets/css/style.css') ?>">
   <style>
     .admin-wrap { padding: 48px 32px 80px; }
     :root { --blue-ice: var(--blue-soft); --text-secondary: var(--text-2); --text-muted: var(--mute); --bg-card: var(--ink-2); --border-subtle: var(--line); --radius-lg: 8px; --radius-md: 6px; --font-serif: var(--serif); }
@@ -247,6 +300,13 @@ $display_products = array_slice($filtered_products, 0, 60);
     .admin-table th, .admin-table td { padding: 10px 8px; border-bottom: 1px solid var(--border-subtle); text-align: left; vertical-align: middle; }
     .admin-table th { color: var(--blue-ice); font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.06em; }
     .admin-input-sm { background: #05070d; border: 1px solid var(--border-subtle); border-radius: 6px; padding: 6px 8px; color: #fff; width: 100%; font-size: 0.82rem; }
+    .adm-h { margin-top: 18px; color: var(--blue-ice); font-size: 1rem; letter-spacing: .04em; }
+    .adm-images { display: flex; gap: 12px; flex-wrap: wrap; }
+    .adm-images figure { width: 150px; display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--text-secondary); }
+    .adm-images img { width: 150px; height: 150px; object-fit: cover; border-radius: 6px; background: #0e1422; }
+    .adm-images a { background: #0e1422; border-radius: 6px; }
+    .adm-images figcaption { display: flex; flex-direction: column; gap: 4px; }
+    .admin-wrap label { cursor: pointer; }
     .flash-banner { background: rgba(16, 185, 129, 0.16); border: 1px solid rgba(16, 185, 129, 0.5); color: #34d399; padding: 14px 18px; border-radius: var(--radius-md); margin-bottom: 20px; font-weight: 600; }
   </style>
 </head>
@@ -294,9 +354,14 @@ $display_products = array_slice($filtered_products, 0, 60);
 
       <!-- Admin Navigation Tabs -->
       <div class="catalog-tabs" style="margin-bottom:24px;">
-        <a href="/admin.php?tab=products" class="tab-chip <?= $tab === 'products' ? 'active' : '' ?>">1. Каталог и цены (<?= count($products) ?>)</a>
+        <a href="/admin.php?tab=products" class="tab-chip <?= in_array($tab, ['products', 'product'], true) ? 'active' : '' ?>">1. Каталог и цены (<?= count($products) ?>)</a>
         <a href="/admin.php?tab=texts" class="tab-chip <?= $tab === 'texts' ? 'active' : '' ?>">2. Тексты, акции и контакты ([заполнить])</a>
         <a href="/admin.php?tab=orders" class="tab-chip <?= $tab === 'orders' ? 'active' : '' ?>">3. Заказы и заявки (<?= count($orders) ?>)</a>
+        <a href="/admin.php?tab=reviews" class="tab-chip <?= $tab === 'reviews' ? 'active' : '' ?>">4. Отзывы (<?= count(array_filter($reviews, fn($r) => ($r['status'] ?? '') === 'pending')) ?> на модерации)</a>
+        <a href="/admin.php?tab=brands" class="tab-chip <?= $tab === 'brands' ? 'active' : '' ?>">5. Бренды</a>
+        <a href="/admin.php?tab=collections" class="tab-chip <?= $tab === 'collections' ? 'active' : '' ?>">6. Подборки и SEO-страницы</a>
+        <a href="/admin.php?tab=promos" class="tab-chip <?= $tab === 'promos' ? 'active' : '' ?>">7. Промокоды</a>
+        <a href="/admin.php?tab=pages" class="tab-chip <?= $tab === 'pages' ? 'active' : '' ?>">8. Страницы и документы</a>
         <?php if (is_file(__DIR__ . '/reports/Сверка с Авито.xlsx')): ?><a href="/admin.php?report=1" class="tab-chip">Скачать сверку с Авито (.xlsx)</a><?php endif; ?>
       </div>
 
@@ -323,19 +388,6 @@ $display_products = array_slice($filtered_products, 0, 60);
               </select>
             </div>
             <div>
-              <label style="font-size:0.75rem;color:var(--text-secondary);">Семейство</label>
-              <select name="family" class="admin-input-sm">
-                <option value="Древесные">Древесные</option>
-                <option value="Восточные">Восточные</option>
-                <option value="Цветочные">Цветочные</option>
-                <option value="Гурманские">Гурманские</option>
-                <option value="Цитрусовые">Цитрусовые</option>
-                <option value="Пряные">Пряные</option>
-                <option value="Кожаные">Кожаные</option>
-                <option value="Мускусные">Мускусные</option>
-              </select>
-            </div>
-            <div>
               <label style="font-size:0.75rem;color:var(--text-secondary);">5 мл (₽)</label>
               <input type="number" name="price_5" class="admin-input-sm" placeholder="1500">
             </div>
@@ -353,6 +405,19 @@ $display_products = array_slice($filtered_products, 0, 60);
             </div>
             <button type="submit" class="btn btn--primary btn--sm">Добавить</button>
           </form>
+        </div>
+
+        <div class="admin-card">
+          <h2 style="font-family:var(--font-serif);font-size:1.45rem;margin-bottom:8px;">Массовое заполнение через Excel</h2>
+          <p style="color:var(--text-secondary);margin-bottom:14px;font-size:14px">Скачайте таблицу, заполните в Excel колонки (аккорды, ноты, парфюмер, год, концентрация, стойкость 1–5, шлейф 1–5, сезоны, описание…) и загрузите обратно в формате CSV. Списки — через запятую. Строки сопоставляются по колонке id.</p>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+            <a href="/admin.php?export=csv" class="btn btn--line btn--sm">Скачать каталог (.csv)</a>
+            <form method="post" enctype="multipart/form-data" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <input type="hidden" name="admin_action" value="import_csv">
+              <input type="file" name="csv" accept=".csv,text/csv" class="admin-input-sm" style="width:auto" required>
+              <button class="btn btn--primary btn--sm" type="submit">Загрузить CSV</button>
+            </form>
+          </div>
         </div>
 
         <!-- Search & Edit Products -->
@@ -416,6 +481,7 @@ $display_products = array_slice($filtered_products, 0, 60);
                       </td>
                       <td style="white-space:nowrap;">
                         <button type="submit" class="btn btn--primary btn--sm" style="padding:6px 12px;">Сохранить</button>
+                        <a href="/admin.php?tab=product&id=<?= (int)$p['id'] ?>" class="btn btn--line btn--sm" style="padding:6px 12px;">Карточка</a>
                       </td>
                     </form>
                   </tr>
@@ -566,17 +632,6 @@ $display_products = array_slice($filtered_products, 0, 60);
             <textarea name="delivery_text" class="form-control" rows="2"><?= h($config['delivery_text'] ?? '') ?></textarea>
           </div>
 
-          <h3 style="margin-top:16px;color:var(--blue-ice);">Карточки отзывов (можно вставить реальные тексты с Авито)</h3>
-          <?php foreach (($config['reviews'] ?? []) as $idx => $rev): ?>
-            <div style="background:#05070d;border:1px solid var(--border-subtle);border-radius:10px;padding:14px;">
-              <div class="two-col-grid" style="margin-bottom:8px;">
-                <input type="text" name="rev_author[<?= $idx ?>]" class="form-control" value="<?= h($rev['author'] ?? '') ?>" placeholder="Автор отзыва">
-                <input type="text" name="rev_perfume[<?= $idx ?>]" class="form-control" value="<?= h($rev['perfume'] ?? '') ?>" placeholder="Аромат">
-              </div>
-              <textarea name="rev_text[<?= $idx ?>]" class="form-control" rows="2"><?= h($rev['text'] ?? '') ?></textarea>
-            </div>
-          <?php endforeach; ?>
-
           <button type="submit" class="btn btn--primary" style="margin-top:14px;">Сохранить все изменения на сайте</button>
         </form>
 
@@ -649,7 +704,57 @@ $display_products = array_slice($filtered_products, 0, 60);
             </table>
           </div>
         </div>
+
+      <?php elseif ($tab === 'reviews'): ?>
+        <div class="admin-card" style="margin-bottom:24px;">
+          <h2 style="font-family:var(--font-serif);font-size:1.6rem;margin-bottom:8px;">Добавить отзыв вручную</h2>
+          <p style="color:var(--text-secondary);margin-bottom:14px;">Сюда можно переписать отзывы с других площадок. Такой отзыв сразу публикуется на сайте.</p>
+          <form method="post" class="form-grid">
+            <input type="hidden" name="admin_action" value="add_review">
+            <div class="two-col-grid">
+              <div class="form-group"><label>Имя</label><input class="form-control" name="author" required></div>
+              <div class="form-group"><label>Аромат (отзыв появится на его странице)</label><input class="form-control" name="perfume" placeholder="Начните вводить название" list="productList"></div>
+            </div>
+            <div class="form-group"><label>Оценка</label>
+              <select class="form-control" name="rating"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select>
+            </div>
+            <div class="form-group"><label>Текст</label><textarea class="form-control" name="text" rows="4" required></textarea></div>
+            <button class="btn btn--primary" type="submit">Опубликовать</button>
+          </form>
+        </div>
+        <div class="admin-card">
+          <h2 style="font-family:var(--font-serif);font-size:1.45rem;margin-bottom:14px;">Модерация</h2>
+          <?php if (!$reviews): ?><p>Отзывов пока нет.</p><?php endif; ?>
+          <?php foreach (array_reverse($reviews) as $rev): ?>
+            <div style="border-top:1px solid var(--border-subtle);padding:14px 0;">
+              <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+                <strong><?= h($rev['author'] ?? '') ?></strong>
+                <span><?= (int)($rev['rating'] ?? 5) ?>/5 · <?= h($rev['status'] ?? '') ?> · <?= h($rev['created_at'] ?? '') ?></span>
+              </div>
+              <?php if (!empty($rev['perfume'])): ?><div style="color:var(--blue-ice);font-size:13px;"><?= h($rev['perfume']) ?><?= !empty($rev['product_id']) ? ' · <a href="/admin.php?tab=product&id=' . (int)$rev['product_id'] . '">карточка #' . (int)$rev['product_id'] . '</a>' : ' · <span class="muted">не привязан к аромату</span>' ?></div><?php endif; ?>
+              <p style="margin:8px 0;"><?= h($rev['text'] ?? '') ?></p>
+              <?php if (($rev['status'] ?? '') !== 'published'): ?>
+                <form method="post" style="display:inline;">
+                  <input type="hidden" name="admin_action" value="moderate_review">
+                  <input type="hidden" name="review_id" value="<?= h($rev['id'] ?? '') ?>">
+                  <input type="hidden" name="status" value="published">
+                  <button class="btn btn--line btn--sm" type="submit">Опубликовать</button>
+                </form>
+              <?php endif; ?>
+              <?php if (($rev['status'] ?? '') !== 'rejected'): ?>
+                <form method="post" style="display:inline;">
+                  <input type="hidden" name="admin_action" value="moderate_review">
+                  <input type="hidden" name="review_id" value="<?= h($rev['id'] ?? '') ?>">
+                  <input type="hidden" name="status" value="rejected">
+                  <button class="btn btn--ghost btn--sm" type="submit">Скрыть</button>
+                </form>
+              <?php endif; ?>
+            </div>
+          <?php endforeach; ?>
+        </div>
       <?php endif; ?>
+      <?php if (in_array($tab, ['product', 'brands', 'collections', 'promos', 'pages'], true)) include __DIR__ . '/includes/admin-views.php'; ?>
+      <?php if ($tab === 'reviews'): ?><datalist id="productList"><?php foreach ($products as $pp): ?><option value="<?= h($pp['name']) ?>"><?php endforeach; ?></datalist><?php endif; ?>
 
     <?php endif; ?>
   </main>

@@ -58,6 +58,7 @@ if ($action === 'create_order') {
     [$name, $phone, $email] = validate_contacts($input);
     $mode = ($input['order_mode'] ?? 'buy') === 'book' ? 'book' : 'buy';
     $delivery = mb_substr(trim((string)($input['delivery'] ?? '')), 0, 80);
+    $comment = mb_substr(trim((string)($input['comment'] ?? '')), 0, 500);
     $payment = mb_substr(trim((string)($input['payment'] ?? '')), 0, 80);
     $address = mb_substr(trim((string)($input['address'] ?? '')), 0, 300);
     $items = is_array($input['items'] ?? null) ? $input['items'] : [];
@@ -93,7 +94,25 @@ if ($action === 'create_order') {
     $bundle_pct = (int)($config['promos']['bundle_discount_percent'] ?? 10);
     $gift_from = (int)($config['promos']['gift_threshold'] ?? 8000);
     $discount = $qty_total >= $bundle_min ? (int)round($subtotal * $bundle_pct / 100) : 0;
-    $total = $subtotal - $discount;
+
+    $promo_code = '';
+    $promo_sum = 0;
+    if (trim((string)($input['promo_code'] ?? '')) !== '') {
+        $promo = find_promo((string)$input['promo_code']);
+        $err = promo_error($promo, $subtotal - $discount, $phone, $email);
+        if ($err !== '') {
+            respond(['ok' => false, 'error' => $err], 400);
+        }
+        $promo_code = mb_strtoupper((string)$promo['code']);
+        $promo_sum = promo_discount($promo, $subtotal - $discount);
+    }
+    $after = $subtotal - $discount - $promo_sum;
+    $loyalty_max = (int)($config['promos']['loyalty_max_share'] ?? 50);
+    $points = max(0, min((int)($input['points_spend'] ?? 0), (int)floor($after * $loyalty_max / 100)));
+    $total = $after - $points;
+
+    $gift = $catalog[(int)($input['gift_id'] ?? 0)] ?? null;
+    $gift_ok = $after >= $gift_from;
 
     $orders = get_orders();
     $order = [
@@ -109,12 +128,25 @@ if ($action === 'create_order') {
         'total_qty'       => $qty_total,
         'subtotal'        => $subtotal,
         'discount_bundle' => $discount,
+        'promo_code'      => $promo_code,
+        'discount_promo'  => $promo_sum,
+        'points_spend'    => $points,
         'total'           => $total,
-        'gift_2ml'        => $total >= $gift_from,
-        'comment'         => '',
+        'delivery_price'  => 0,
+        'gift_2ml'        => $gift_ok,
+        'gift_name'       => $gift_ok && $gift ? $gift['name'] : '',
+        'comment'         => $comment,
     ];
     array_unshift($orders, $order);
     save_orders($orders);
+    if ($promo_code !== '') {
+        $cfg = get_site_config();
+        foreach ($cfg['promo_codes'] as &$pc) {
+            if (mb_strtoupper((string)$pc['code']) === $promo_code) $pc['used'] = (int)($pc['used'] ?? 0) + 1;
+        }
+        unset($pc);
+        save_site_config($cfg);
+    }
     send_lead_notifications($order, $config);
 
     respond([
@@ -166,6 +198,63 @@ if ($action === 'my_orders') {
         }
     }
     respond(['ok' => true, 'orders' => $found]);
+}
+
+if ($action === 'check_promo') {
+    $promo = find_promo((string)($input['code'] ?? ''));
+    $err = promo_error($promo, max(0, (int)($input['subtotal'] ?? 0)), (string)($input['phone'] ?? ''), (string)($input['email'] ?? ''));
+    if ($err !== '' && !($promo && str_starts_with($err, 'Промокод действует при заказе от'))) {
+        respond(['ok' => false, 'error' => $err]);
+    }
+    respond(['ok' => true, 'promo' => promo_public($promo)]);
+}
+
+if ($action === 'vote_similar') {
+    $pid = (int)($input['product_id'] ?? 0);
+    $sid = (int)($input['similar_id'] ?? 0);
+    $ids = array_map(fn($p) => (int)$p['id'], get_products());
+    if (!$pid || !$sid || $pid === $sid || !in_array($pid, $ids, true) || !in_array($sid, $ids, true)) {
+        respond(['ok' => false, 'error' => 'Выберите аромат из каталога'], 400);
+    }
+    $votes = json_load(VOTES_FILE, []);
+    $votes[(string)$pid][(string)$sid] = (int)($votes[(string)$pid][(string)$sid] ?? 0) + 1;
+    json_save(VOTES_FILE, $votes);
+    respond(['ok' => true]);
+}
+
+if ($action === 'create_review') {
+    $name = mb_substr(trim((string)($input['name'] ?? '')), 0, 80);
+    $text = mb_substr(trim((string)($input['text'] ?? '')), 0, 1000);
+    $perfume = mb_substr(trim((string)($input['perfume'] ?? '')), 0, 160);
+    $product_id = (int)($input['product_id'] ?? 0);
+    if ($product_id) {
+        $found = null;
+        foreach (get_products() as $p) {
+            if ((int)$p['id'] === $product_id) { $found = $p; break; }
+        }
+        if (!$found) $product_id = 0; else $perfume = $found['name'];
+    }
+    $rating = max(1, min(5, (int)($input['rating'] ?? 5)));
+    if ($name === '' || mb_strlen($text) < 10) {
+        respond(['ok' => false, 'error' => 'Напишите имя и отзыв хотя бы из нескольких слов.'], 400);
+    }
+    if (empty($input['consent'])) {
+        respond(['ok' => false, 'error' => 'Нужно согласие на публикацию отзыва.'], 400);
+    }
+    $reviews = get_reviews();
+    $reviews[] = [
+        'id' => 'RV-' . date('ymd') . '-' . str_pad((string)(count($reviews) + 1), 4, '0', STR_PAD_LEFT),
+        'author' => $name,
+        'product_id' => $product_id,
+        'perfume' => $perfume,
+        'text' => $text,
+        'rating' => $rating,
+        'status' => 'pending',
+        'source' => 'site',
+        'created_at' => date('d.m.Y H:i'),
+    ];
+    save_reviews($reviews);
+    respond(['ok' => true, 'message' => 'Отзыв отправлен на модерацию. На сайте он появится после проверки.']);
 }
 
 respond(['ok' => false, 'error' => 'Unknown action'], 400);
