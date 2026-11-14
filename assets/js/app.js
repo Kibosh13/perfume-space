@@ -341,7 +341,8 @@
       <div class="buybox__stock ${p.inStock ? 'is-in' : 'is-out'}">${p.inStock ? 'В наличии' : 'Нет в наличии'}</div>
       <div class="buybox__vols">${['5', '10', '15'].map((x) => {
         const has = p.volumes[x] && p.inStock;
-        return `<button type="button" class="bvol ${has && x === v ? 'is-active' : ''}" data-vol="${x}" data-id="${p.id}" ${has ? '' : 'disabled'}><b>${x} мл</b><span>${p.volumes[x] ? money(volPrice(p, x)) : '—'}</span></button>`;
+        const off = ({ 10: 3, 15: 7 })[x] || 0;
+        return `<button type="button" class="bvol ${has && x === v ? 'is-active' : ''}" data-vol="${x}" data-id="${p.id}" ${has ? '' : 'disabled'}><b>${x} мл</b><span>${p.volumes[x] ? money(volPrice(p, x)) : '—'}</span>${off && p.volumes[x] ? `<i class="vol__off">−${off}%</i>` : ''}</button>`;
       }).join('')}</div>
       ${p.inStock
         ? `<div class="pv__price">${money(price)}${old ? `<s>${money(old)}</s>` : ''}<small>за ${v} мл</small></div>
@@ -543,6 +544,12 @@
     }
 
     if (state.step === 'contacts') {
+      const u = currentUser();
+      if (u) {
+        if (!state.form.name && u.name) state.form.name = u.name;
+        if (!state.form.phone && u.phone) state.form.phone = u.phone;
+        if (!state.form.email && u.email) state.form.email = u.email;
+      }
       body.innerHTML = stepper() + `
         <form class="form checkout" id="stepForm" data-next="delivery" novalidate>
           <div class="seg" role="radiogroup" aria-label="Тип заказа">
@@ -551,7 +558,9 @@
           </div>
           <div class="field"><label for="oName">Имя</label><input class="input" id="oName" name="name" autocomplete="name" value="${f('name')}" required></div>
           <div class="field"><label for="oPhone">Телефон</label><input class="input" id="oPhone" name="phone" type="tel" autocomplete="tel" placeholder="+7" value="${f('phone', state.phone)}" required></div>
-          <div class="field"><label for="oEmail">Почта</label><input class="input" id="oEmail" name="email" type="email" autocomplete="email" value="${f('email')}" required><small class="hint">Пришлём чек и номер отслеживания</small></div>
+          ${state.form.email && !state.editEmail
+            ? `<div class="field"><label>Почта</label><div class="email-line"><b>${f('email')}</b><button type="button" class="u-link" data-edit-email="1">Изменить</button></div><input type="hidden" name="email" value="${f('email')}"><small class="hint">Пришлём чек и номер отслеживания</small></div>`
+            : `<div class="field"><label for="oEmail">Почта</label><input class="input" id="oEmail" name="email" type="email" autocomplete="email" value="${f('email')}" required><small class="hint">Пришлём чек и номер отслеживания</small></div>`}
         </form>`;
       foot.innerHTML = `<div class="foot-sum"><span>Итого</span><b>${money(t.total)}</b></div><div class="foot-nav"><button type="button" class="btn btn--ghost" data-step="cart">${icon('left')} Назад</button><button type="submit" form="stepForm" class="btn btn--primary">Далее: доставка ${icon('arrow')}</button></div>`;
       return;
@@ -640,6 +649,7 @@
       if (!state.form.address) return toast('Укажите адрес или пункт выдачи');
     }
     save('ps_checkout', state.form);
+    state.editEmail = false;
     goStep(form.dataset.next);
   };
 
@@ -918,6 +928,11 @@
     if (d.giftPick !== undefined) { state.pickingGift = d.giftPick === '1'; renderCart(); return; }
     if (d.gift) { state.giftId = Number(d.gift); state.pickingGift = false; save('ps_gift', state.giftId); renderCart(); return; }
     if (d.applyPromo !== undefined) { applyPromo(); return; }
+    if (d.editEmail) {
+      const form = $('#stepForm');
+      if (form) new FormData(form).forEach((v, k) => { state.form[k] = String(v).trim(); });
+      state.editEmail = true; renderCart(); $('#oEmail')?.focus(); return;
+    }
     if (d.dropPromo !== undefined) { state.promo = null; save('ps_promo2', null); renderCart(); return; }
     if (d.copy) { navigator.clipboard && navigator.clipboard.writeText(d.copy); state.form.promo = d.copy; save('ps_checkout', state.form); toast('Промокод ' + d.copy + ' скопирован — введите его при оплате'); return; }
     if (d.ask !== undefined) { $('#askBox').hidden = d.ask !== '1'; if (d.ask === '1' && !$('#askLog').childElementCount) askLog('Спросите про аромат — подскажу по каталогу. Сложный вопрос передам менеджеру.', 'bot'); return; }

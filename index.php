@@ -233,17 +233,6 @@ layout_start([
     </div>
   </section>
 
-  <section class="section section--tight" aria-label="О магазине">
-    <div class="container">
-      <div class="hero__facts facts">
-        <div class="fact"><div class="fact__val">2018</div><div class="fact__lbl">работаем с этого года</div></div>
-        <div class="fact"><div class="fact__val">10 000<small>+</small></div><div class="fact__lbl">покупателей</div></div>
-        <div class="fact"><div class="fact__val">5,0</div><div class="fact__lbl">более 3 500 отзывов</div></div>
-        <div class="fact"><div class="fact__val">1 000<small>+</small></div><div class="fact__lbl">ароматов · <?= count($brands) ?> брендов</div></div>
-      </div>
-    </div>
-  </section>
-
   <section class="section section--tight" aria-label="Почему выбирают нас">
     <div class="container benefits">
       <div class="benefit reveal">
@@ -377,7 +366,7 @@ layout_start([
         <details><summary>Это оригинальная парфюмерия?</summary><p>Да. Оригинальность продукции подтверждена декларацией соответствия и маркировкой «Честный ЗНАК». Если остались вопросы по конкретному аромату — напишите нам, расскажем подробнее.</p></details>
         <details><summary>Что такое распив?</summary><p>Это часть аромата из оригинального флакона, перелитая в атомайзер на 5, 10 или 15 мл. Так можно попробовать и носить дорогой аромат без покупки целого флакона.</p></details>
         <details><summary>Сколько стоит доставка?</summary><p>Доставка по всей России бесплатная. Обычно отправляем заказ в течение суток после оформления — через СДЭК, Почту России или Яндекс Доставку.</p></details>
-        <details><summary>Как получить подарок и скидку?</summary><p>При сумме заказа от <?= format_price($gift_from) ?> выберите парфюм 2 мл в подарок прямо в корзине. При покупке от <?= $bundle_min ?> позиций скидка <?= $bundle_pct ?>% применяется автоматически. Промокод вводится при оформлении и срабатывает один раз.</p></details>
+        <details><summary>Как получить подарок и скидку?</summary><p>При сумме заказа от <?= format_price($gift_from) ?> выберите парфюм 2 мл в подарок прямо в корзине. При покупке от <?= $bundle_min ?> позиций скидка <?= $bundle_pct ?>% применяется автоматически.</p></details>
         <details><summary>Что делать, если аромата нет в наличии?</summary><p>Нажмите «Забронировать» на странице аромата — мы сообщим, когда аромат появится, и закрепим его за вами.</p></details>
       </div>
     </div>

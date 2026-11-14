@@ -118,7 +118,7 @@ if ($also) $tabs['liked'] = ["Тем, кому нравится {$title}, ещё
           <div class="buybox__vols">
             <?php $first = true; foreach (['5', '10', '15'] as $v): $has = isset($volumes[$v]); ?>
               <button type="button" class="bvol<?= $has && $first && $p['in_stock'] ? ' is-active' : '' ?>" data-vol="<?= $v ?>" data-id="<?= (int)$p['id'] ?>" <?= $has && $p['in_stock'] ? '' : 'disabled' ?>>
-                <b><?= $v ?> мл</b><span><?= $has ? format_price($volumes[$v]) : '—' ?></span>
+                <b><?= $v ?> мл</b><span><?= $has ? format_price($volumes[$v]) : '—' ?></span><?php if ($has && isset(['10' => 1, '15' => 1][$v])): ?><i class="vol__off">−<?= $v === '10' ? 3 : 7 ?>%</i><?php endif; ?>
               </button>
             <?php if ($has) $first = false; endforeach; ?>
           </div>
@@ -148,47 +148,42 @@ if ($also) $tabs['liked'] = ["Тем, кому нравится {$title}, ещё
 
   <section class="section pd__about" id="about" aria-labelledby="about-title">
     <div class="container">
-      <div class="section-head"><div><div class="eyebrow">Описание</div><h2 class="h-section" id="about-title">Об аромате</h2></div></div>
-      <div class="about">
-        <div class="about__col">
-          <?php if ($p['accords']): ?>
-            <h3 class="about__h">Основные аккорды</h3>
-            <div class="accords">
-              <?php foreach ($p['accords'] as $i => $a): ?>
-                <div class="accord" style="--w:<?= max(35, 100 - $i * 12) ?>%"><span><?= h($a) ?></span></div>
-              <?php endforeach; ?>
-            </div>
-          <?php endif; ?>
-          <?php if ($pyramid): ?>
-            <h3 class="about__h">Пирамида</h3>
-            <dl class="pyramid">
-              <?php foreach ($pyramid as $label => $notes): ?><div><dt><?= h($label) ?></dt><dd><?= h($notes) ?></dd></div><?php endforeach; ?>
-            </dl>
-          <?php endif; ?>
-          <?php if ($p['description']): ?>
-            <div class="about__text prose"><?= render_text($p['description']) ?></div>
-          <?php elseif (!$p['accords'] && !$pyramid): ?>
-            <p class="muted">Подробное описание аромата скоро появится. Остались вопросы — <button type="button" class="u-link" data-ask="1">спросите нас</button>.</p>
-          <?php endif; ?>
-        </div>
-        <div class="about__col">
-          <h3 class="about__h">Характеристики</h3>
-          <dl class="specs">
-            <div><dt>Бренд</dt><dd><a href="<?= h(brand_url($p['brand'])) ?>"><?= h($p['brand']) ?></a></dd></div>
-            <?php foreach ($facts as $k => $v): ?><div><dt><?= h($k) ?></dt><dd><?= h((string)$v) ?></dd></div><?php endforeach; ?>
-          </dl>
-          <?php if ($p['longevity'] || $p['sillage']): ?>
-            <h3 class="about__h">Профиль аромата</h3>
-            <div class="profile">
-              <?php foreach ([['Стойкость', $p['longevity'], LONGEVITY], ['Шлейф', $p['sillage'], SILLAGE]] as [$label, $val, $names]): if (!$val) continue; ?>
-                <div class="profile__row">
-                  <div class="profile__top"><span><?= $label ?></span><b><?= h($names[$val]) ?></b></div>
-                  <div class="profile__bar"><?php for ($i = 1; $i <= 5; $i++): ?><i class="<?= $i <= $val ? 'is-on' : '' ?>"></i><?php endfor; ?></div>
-                </div>
-              <?php endforeach; ?>
-            </div>
-          <?php endif; ?>
-        </div>
+      <div class="section-head"><div><div class="eyebrow">Характеристики</div><h2 class="h-section" id="about-title">Об аромате</h2></div></div>
+      <?php
+        $dash = '<span class="muted">—</span>';
+        $level = function (int $val, array $names) use ($dash) {
+            if (!$val) return $dash;
+            $bar = '';
+            for ($i = 1; $i <= 5; $i++) $bar .= '<i class="' . ($i <= $val ? 'is-on' : '') . '"></i>';
+            return '<span class="spec-level"><span class="profile__bar">' . $bar . '</span>' . h($names[$val]) . '</span>';
+        };
+        $rows = [
+            'Основные аккорды' => $p['accords'] ? '<span class="spec-chips">' . implode('', array_map(fn($a) => '<span>' . h($a) . '</span>', $p['accords'])) . '</span>' : $dash,
+            'Верхние ноты' => $p['notes']['top'] !== '' ? h($p['notes']['top']) : $dash,
+            'Средние ноты' => $p['notes']['heart'] !== '' ? h($p['notes']['heart']) : $dash,
+            'Базовые ноты' => $p['notes']['base'] !== '' ? h($p['notes']['base']) : $dash,
+            'Парфюмер' => $p['perfumer'] !== '' ? h($p['perfumer']) : $dash,
+            'Страна бренда' => $country !== '' ? h($country) : $dash,
+            'Пол' => h(mb_strtolower(GENDER_LABELS[$p['gender']] ?? $p['gender'])),
+            'Год выпуска' => $p['year'] ? (string)$p['year'] : $dash,
+            'Концентрация' => $p['concentration'] !== '' ? h($p['concentration']) : $dash,
+            'Стойкость' => $level($p['longevity'], LONGEVITY),
+            'Шлейф' => $level($p['sillage'], SILLAGE),
+            'Сезонность' => $p['seasons'] ? h(implode(', ', $p['seasons'])) : $dash,
+            'День / вечер' => $p['daytime'] ? h(implode(' / ', $p['daytime'])) : $dash,
+        ];
+      ?>
+      <dl class="specs specs--full">
+        <div><dt>Бренд</dt><dd><a href="<?= h(brand_url($p['brand'])) ?>"><?= h($p['brand']) ?></a></dd></div>
+        <?php foreach ($rows as $k => $v): ?><div><dt><?= h($k) ?></dt><dd><?= $v ?></dd></div><?php endforeach; ?>
+      </dl>
+      <div class="about__desc">
+        <h3 class="about__h">Описание</h3>
+        <?php if ($p['description']): ?>
+          <div class="prose"><?= render_text($p['description']) ?></div>
+        <?php else: ?>
+          <p class="muted">Подробное описание аромата скоро появится. Остались вопросы — <button type="button" class="u-link" data-ask="1">спросите нас</button>.</p>
+        <?php endif; ?>
       </div>
     </div>
   </section>

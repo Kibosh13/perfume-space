@@ -328,13 +328,45 @@ function also_chosen(array $p, int $limit = 12): array {
     }
     arsort($score);
     $list = array_map(fn($id) => $cat[$id], array_keys($score));
-    if (count($list) < 4) {
-        // Пока статистики мало — популярные ароматы той же аудитории
-        $pop = array_filter($cat, fn($q) => (int)$q['id'] !== (int)$p['id'] && !empty($q['in_stock']) && !isset($score[(int)$q['id']]) && ($q['gender'] === $p['gender'] || $q['gender'] === 'Унисекс'));
-        uasort($pop, fn($a, $b) => popularity($b) <=> popularity($a) ?: (!empty($b['image']) <=> !empty($a['image'])) ?: $a['id'] <=> $b['id']);
-        $list = array_merge($list, array_slice(array_values($pop), 0, $limit));
+    if (count($list) < $limit) {
+        // Пока статистики покупок мало — ароматы со схожим характером: общие «нотные» слова в названии
+        // (Tobacco, Oud, Rose, Vanille…), та же аудитория и близкая цена, другие бренды
+        $mine = name_note_words($p);
+        $price = product_min_price($p) ?: 1;
+        $cand = [];
+        foreach ($cat as $q) {
+            $qid = (int)$q['id'];
+            if ($qid === (int)$p['id'] || isset($score[$qid]) || empty($q['in_stock']) || $q['brand'] === $p['brand']) continue;
+            $shared = count(array_intersect($mine, name_note_words($q)));
+            $qp = product_min_price($q) ?: 1;
+            $s = $shared * 4
+                + ($q['gender'] === $p['gender'] ? 1.5 : ($q['gender'] === 'Унисекс' || $p['gender'] === 'Унисекс' ? 0.5 : -3))
+                + 2 * (1 - min(1, abs($qp - $price) / max($qp, $price)))
+                + (!empty($q['image']) ? 0.6 : -1)
+                + min(popularity($q), 50) / 100
+                + (crc32($p['id'] . ':' . $qid) % 1000) / 600; // устойчивый разброс, чтобы списки у разных ароматов не совпадали
+            $cand[] = [$s, $q];
+        }
+        usort($cand, fn($x, $y) => $y[0] <=> $x[0]);
+        $list = array_merge($list, array_map(fn($x) => $x[1], array_slice($cand, 0, $limit)));
     }
     return array_slice($list, 0, $limit);
+}
+
+/** Слова-ноты из названия: Tobacco Vanille → [tobacco, vanill] */
+function name_note_words(array $p): array {
+    static $stems = ['oud', 'oudh', 'tobacco', 'tabac', 'vanill', 'rose', 'santal', 'sandal', 'amber', 'ambre', 'musk', 'musc', 'cherry', 'cerise', 'leather', 'cuir', 'iris', 'jasmin', 'vetiver', 'cedar', 'cedre', 'tea', 'the', 'neroli', 'bergamot', 'citrus', 'lime', 'lemon', 'limone', 'orange', 'peach', 'pear', 'apple', 'fig', 'coffee', 'cafe', 'cacao', 'chocolate', 'honey', 'miel', 'incense', 'encens', 'pepper', 'saffron', 'patchouli', 'tonka', 'almond', 'coconut', 'lavender', 'lavande', 'mint', 'aqua', 'acqua', 'sea', 'marine', 'wood', 'bois', 'smoke', 'fleur', 'flower', 'tuberose', 'violet', 'magnolia', 'peony', 'pivoine', 'gardenia', 'osmanthus', 'mandarin', 'grapefruit', 'pomelo', 'ginger', 'cardamom', 'cinnamon', 'rum', 'whisky', 'cognac', 'vodka', 'gin', 'pistachio', 'praline', 'caramel', 'sugar', 'candy', 'berry', 'framboise', 'raspberry', 'plum', 'prune', 'labdanum', 'myrrh', 'benzoin', 'resin', 'moss', 'mousse', 'oak', 'pine', 'cypress', 'sage', 'basil', 'thyme', 'herb', 'green', 'vert', 'ice', 'fresh', 'sun', 'soleil'];
+    $words = preg_split('/[^a-z]+/', strtolower(iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $p['name']) ?: $p['name']));
+    $found = [];
+    foreach ($words as $w) {
+        if (strlen($w) < 3) continue;
+        foreach ($stems as $st) {
+            if (str_starts_with($w, $st)) { $found[] = $st === 'oudh' ? 'oud' : $st; break; }
+        }
+    }
+    // Ноты из описания, если заполнены, тоже учитываются
+    foreach (array_merge(product_notes($p), array_map('mb_strtolower', $p['accords'])) as $n) $found[] = $n;
+    return array_values(array_unique($found));
 }
 
 function same_brand(array $p, int $limit = 12): array {
@@ -417,7 +449,8 @@ function card_html(array $p): string {
     $vol_html = '';
     foreach (['5', '10', '15'] as $x) {
         $on = !empty($p['volumes'][$x]) && !empty($p['in_stock']);
-        $vol_html .= '<button type="button" class="vol' . ($x === $v && $on ? ' is-active' : '') . '" data-vol="' . $x . '" data-id="' . (int)$p['id'] . '"' . ($on ? '' : ' disabled') . '>' . $x . ' мл</button>';
+        $off = ['10' => 3, '15' => 7][$x] ?? 0;
+        $vol_html .= '<button type="button" class="vol' . ($x === $v && $on ? ' is-active' : '') . '" data-vol="' . $x . '" data-id="' . (int)$p['id'] . '"' . ($on ? '' : ' disabled') . '>' . $x . ' мл' . ($off && !empty($p['volumes'][$x]) ? '<span class="vol__off">−' . $off . '%</span>' : '') . '</button>';
     }
     return '<article class="card' . (empty($p['in_stock']) ? ' card__out' : '') . '" data-card="' . (int)$p['id'] . '">'
         . '<a href="' . h($url) . '" class="card__media' . (empty($p['image']) ? ' card__media--empty' : '') . '"><div class="card__badges">' . $badges . '</div>' . $img . '</a>'
