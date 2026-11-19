@@ -121,7 +121,8 @@
     ordersTab: 'active',
     step: 'cart',
     form: load('ps_checkout', {}),
-    giftId: load('ps_gift', 0),
+    giftIds: [].concat(load('ps_gifts', [])).filter((id) => BY_ID.has(id)),
+    giftSlot: 0,
     pickingGift: false,
     giftQuery: '',
     promo: load('ps_promo2', null),
@@ -443,10 +444,14 @@
     const maxPoints = user ? Math.min(user.points, Math.floor(after * LOYALTY_MAX / 100)) : 0;
     const points = state.usePoints ? maxPoints : 0;
     const total = after - points;
-    const gift = after >= GIFT_FROM;
-    if (!gift) state.giftId = 0;
-    const giftProduct = gift && state.giftId ? BY_ID.get(state.giftId) : null;
-    return { sum, qty, discount, promo, promoSum, promoNote, points, maxPoints, after, total, gift, giftProduct, user };
+    // Пробник 2 мл на каждые GIFT_FROM ₽ после всех скидок
+    const giftCount = Math.max(0, Math.floor(after / GIFT_FROM));
+    if (state.giftIds.length > giftCount) { state.giftIds = state.giftIds.slice(0, giftCount); save('ps_gifts', state.giftIds); }
+    const gifts = Array.from({ length: giftCount }, (_, i) => (state.giftIds[i] ? BY_ID.get(state.giftIds[i]) : null));
+    const gift = giftCount > 0;
+    const giftsMissing = gifts.filter((g) => !g).length;
+    const toNextGift = GIFT_FROM - (after % GIFT_FROM);
+    return { sum, qty, discount, promo, promoSum, promoNote, points, maxPoints, after, total, gift, giftCount, gifts, giftsMissing, toNextGift, user };
   };
 
   const addToCart = (id, btn) => {
@@ -477,20 +482,19 @@
 
   const hintsHtml = (t) => {
     const needItems = Math.max(0, BUNDLE_MIN - t.qty);
-    const needSum = Math.max(0, GIFT_FROM - t.after);
     return `
       <div class="goal">
         <div class="hint-row ${t.discount ? 'is-ok' : ''}">
           <div class="hint-row__text">${t.discount
             ? `${icon('check')} Скидка ${BUNDLE_PCT}% применена`
-            : `${icon('tag')} Добавьте ещё <b>${needItems} ${plural(needItems, 'аромат', 'аромата', 'ароматов')}</b> — получите скидку ${BUNDLE_PCT}%`}</div>
+            : `${icon('tag')}<span>Добавьте ещё <b>${needItems} ${plural(needItems, 'аромат', 'аромата', 'ароматов')}</b> — получите скидку ${BUNDLE_PCT}%</span>`}</div>
           <div class="bar"><i style="width:${Math.min(100, t.qty / BUNDLE_MIN * 100)}%"></i></div>
         </div>
-        <div class="hint-row ${t.gift ? 'is-ok' : ''}">
-          <div class="hint-row__text">${t.gift
-            ? `${icon('gift')} Подарочный пробник 2 мл — <button type="button" class="u-link" data-gift-pick="1">${t.giftProduct ? 'изменить аромат' : 'выберите аромат'}</button>`
-            : `${icon('gift')} До подарочного пробника осталось <b>${money(needSum)}</b>`}</div>
-          <div class="bar"><i style="width:${Math.min(100, t.after / GIFT_FROM * 100)}%"></i></div>
+        ${t.giftCount ? `<div class="hint-row is-ok"><div class="hint-row__text">${icon('gift')}<span>${t.giftCount === 1 ? 'Подарочный пробник 2 мл' : `Подарочные пробники 2 мл: <b>${t.giftCount} шт.</b>`} — ${t.giftsMissing ? `<button type="button" class="u-link" data-gift-pick="1" data-slot="${t.gifts.findIndex((g) => !g)}">${t.giftsMissing === t.giftCount ? (t.giftCount === 1 ? 'выберите аромат' : 'выберите ароматы') : 'выберите ещё ' + t.giftsMissing}</button>` : (t.giftCount === 1 ? 'аромат выбран' : 'ароматы выбраны')}</span></div>
+          <div class="gift-bars">${Array.from({ length: t.giftCount }, () => '<div class="bar"><i style="width:100%"></i></div>').join('')}</div></div>` : ''}
+        <div class="hint-row">
+          <div class="hint-row__text">${icon('gift')}<span>${t.giftCount ? `До ${t.giftCount + 1}-го пробника осталось` : 'До подарочного пробника осталось'} <b>${money(t.toNextGift)}</b></span></div>
+          <div class="bar"><i style="width:${Math.min(100, (t.after % GIFT_FROM) / GIFT_FROM * 100)}%"></i></div>
         </div>
         <div class="hint-row is-ok"><div class="hint-row__text">${icon('fast')} Бесплатная доставка по всей России</div></div>
       </div>`;
@@ -502,7 +506,7 @@
       ${t.discount ? `<div class="discount"><span>Скидка ${BUNDLE_PCT}% за ${BUNDLE_MIN}+ позиций</span><span>−${money(t.discount)}</span></div>` : ''}
       ${t.promoSum ? `<div class="discount"><span>Промокод ${esc(t.promo.code)}</span><span>−${money(t.promoSum)}</span></div>` : ''}
       ${t.points ? `<div class="discount"><span>Баллы</span><span>−${money(t.points)}</span></div>` : ''}
-      ${t.gift ? `<div class="discount"><span>Пробник 2 мл в подарок</span><span>${t.giftProduct ? esc(t.giftProduct.short) : 'выберите аромат'}</span></div>` : ''}
+      ${t.gift ? `<div class="discount"><span>${t.giftCount > 1 ? `Пробники 2 мл в подарок × ${t.giftCount}` : 'Пробник 2 мл в подарок'}</span><span>${t.giftsMissing ? (t.giftsMissing === t.giftCount ? (t.giftCount > 1 ? 'выберите ароматы' : 'выберите аромат') : 'выбрано ' + (t.giftCount - t.giftsMissing) + ' из ' + t.giftCount) : 'Бесплатно'}</span></div>` : ''}
       <div class="discount"><span>Доставка</span><span>Бесплатно</span></div>
       <div class="grand"><span>Итого</span><span>${money(t.total)}</span></div>
       <small>Бесплатная доставка по всей России. Скидка от ${BUNDLE_MIN} позиций применяется автоматически.</small>
@@ -534,9 +538,10 @@
     }
 
     if (state.pickingGift && t.gift) {
+      const slot = Math.min(state.giftSlot, t.giftCount - 1);
       const list = (state.giftQuery ? search(state.giftQuery) : PRODUCTS).filter((p) => p.inStock).slice(0, 40);
       body.innerHTML = `<button type="button" class="back" data-gift-pick="0">${icon('left')} К корзине</button>
-        <p>Выберите аромат для подарочного пробника 2 мл.</p>
+        <p>${t.giftCount > 1 ? `Пробник ${slot + 1} из ${t.giftCount}: выберите аромат 2 мл.` : 'Выберите аромат для подарочного пробника 2 мл.'}</p>
         <div class="gift-pick"><input class="input" id="giftSearch" placeholder="Бренд или название" value="${esc(state.giftQuery)}"></div>
         ${list.map((p) => `<button type="button" class="gift-hit" data-gift="${p.id}"><img src="${esc(p.image ? BASE + p.image : PLACEHOLDER)}" alt=""><span><b>${esc(p.brand)}</b><br>${esc(p.short)}</span></button>`).join('')}`;
       foot.innerHTML = '';
@@ -625,7 +630,7 @@
             <button type="button" class="remove" data-remove="${idx}">Удалить</button>
           </div>
         </div>`;
-    }).join('') + (t.gift ? `<button type="button" class="gift-line" data-gift-pick="1">${icon('gift')}<span>${t.giftProduct ? `${esc(t.giftProduct.brand)} ${esc(t.giftProduct.short)}<small>Подарочный пробник 2 мл · нажмите, чтобы изменить</small>` : 'Выбрать аромат для подарочного пробника 2 мл'}</span></button>` : '');
+    }).join('') + t.gifts.map((g, i) => `<button type="button" class="gift-line" data-gift-pick="1" data-slot="${i}">${icon('gift')}<span>${g ? `${esc(g.brand)} ${esc(g.short)}<small>Подарочный пробник 2 мл${t.giftCount > 1 ? ' №' + (i + 1) : ''} · нажмите, чтобы изменить</small>` : `Выбрать аромат для подарочного пробника 2 мл${t.giftCount > 1 ? ' №' + (i + 1) : ''}`}</span></button>`).join('');
     foot.innerHTML = totalsHtml(t) + `<button type="button" class="btn btn--primary btn--block" data-step="contacts">Оформить заказ ${icon('arrow')}</button>`;
   };
 
@@ -673,10 +678,10 @@
     const pointsBox = form.querySelector('[name=use_points]');
     state.usePoints = !!(pointsBox && pointsBox.checked);
     const t = totals();
-    if (t.gift && !t.giftProduct) { toast('Выберите аромат для подарочного пробника'); state.pickingGift = true; renderCart(); return; }
+    if (t.giftsMissing) { toast(t.giftCount > 1 ? 'Выберите ароматы для всех подарочных пробников' : 'Выберите аромат для подарочного пробника'); state.giftSlot = t.gifts.findIndex((g) => !g); state.pickingGift = true; renderCart(); return; }
     const btn = $('#cartFoot button[type=submit]');
     btn.disabled = true;
-    const payload = { ...state.form, consent: true, items: state.cart, promo_code: t.promoSum ? t.promo.code : '', points_spend: t.points, gift_id: t.giftProduct ? t.giftProduct.id : 0 };
+    const payload = { ...state.form, consent: true, items: state.cart, promo_code: t.promoSum ? t.promo.code : '', points_spend: t.points, gift_ids: t.gifts.map((g) => g.id) };
     payload.address = [state.form.city, state.form.address].filter(Boolean).join(', ');
     const res = await post('create_order', payload);
     btn.disabled = false;
@@ -689,10 +694,10 @@
       user.points = Math.max(0, user.points - t.points) + Math.round(res.order.total * LOYALTY_PCT / 100);
       saveUser(user);
     }
-    state.cart = []; state.giftId = 0; state.promo = null; state.usePoints = false; state.step = 'cart';
+    state.cart = []; state.giftIds = []; state.promo = null; state.usePoints = false; state.step = 'cart';
     state.form = { name: state.form.name, phone: state.form.phone, email: state.form.email, city: state.form.city, address: state.form.address };
     state.lastOrder = { ...res.order, message: res.message };
-    save('ps_cart', state.cart); save('ps_gift', 0); save('ps_promo2', null); save('ps_checkout', state.form);
+    save('ps_cart', state.cart); save('ps_gifts', []); save('ps_promo2', null); save('ps_checkout', state.form);
     note(`${res.order.type === 'booking' ? 'Бронь' : 'Заказ'} ${res.order.id} принят`, res.message);
     goal(res.order.type === 'booking' ? 'booking_submit' : 'order_submit', { order_id: res.order.id, total: res.order.total });
     counters();
@@ -712,7 +717,7 @@
           <span class="status ${o.status === 'completed' ? 'status--done' : ''}">${STATUS[o.status] || o.status}</span>
         </div>
         ${o.items && o.items.length ? `<div class="order__items">${o.items.map((i) => `${esc(i.name)}, ${esc(i.volume)} мл × ${i.qty}`).join('<br>')}</div>` : `<div class="order__items">${esc(o.comment)}</div>`}
-        ${o.total ? `<div class="order__sum">${money(o.total)}${o.gift_2ml ? ' · подарок 2 мл' + (o.gift_name ? ': ' + esc(o.gift_name) : '') : ''}</div>` : ''}
+        ${o.total ? `<div class="order__sum">${money(o.total)}${o.gift_2ml ? ' · ' + ((o.gift_count || 1) > 1 ? (o.gift_count + ' пробника 2 мл') : 'пробник 2 мл') + ' в подарок' + ((o.gift_names || []).length ? ': ' + (o.gift_names || []).map(esc).join(', ') : (o.gift_name ? ': ' + esc(o.gift_name) : '')) : ''}</div>` : ''}
       </div>`).join('');
     $('#ordersList').innerHTML = (items || emptyBlock('box', state.ordersTab === 'active' ? 'Активных заказов нет' : 'Завершённых заказов нет', 'Здесь появятся заказы, оформленные на этом устройстве.')) + `
       <form class="lookup" id="lookupForm">
@@ -925,8 +930,22 @@
     }
     if (d.reset !== undefined) { resetFilters(); return; }
     if (d.step) { goStep(d.step); return; }
-    if (d.giftPick !== undefined) { state.pickingGift = d.giftPick === '1'; renderCart(); return; }
-    if (d.gift) { state.giftId = Number(d.gift); state.pickingGift = false; save('ps_gift', state.giftId); renderCart(); return; }
+    if (d.giftPick !== undefined) {
+      state.pickingGift = d.giftPick === '1';
+      if (d.slot !== undefined) state.giftSlot = Math.max(0, Number(d.slot));
+      state.giftQuery = '';
+      renderCart(); return;
+    }
+    if (d.gift) {
+      const ids = state.giftIds.slice();
+      ids[state.giftSlot] = Number(d.gift);
+      state.giftIds = Array.from({ length: Math.max(ids.length, state.giftSlot + 1) }, (_, i) => ids[i] || 0);
+      save('ps_gifts', state.giftIds);
+      const t = totals();
+      const next = t.gifts.findIndex((g) => !g);
+      if (next >= 0) { state.giftSlot = next; toast(`Пробник выбран. Выберите аромат для пробника №${next + 1}`); } else state.pickingGift = false;
+      renderCart(); return;
+    }
     if (d.applyPromo !== undefined) { applyPromo(); return; }
     if (d.editEmail) {
       const form = $('#stepForm');

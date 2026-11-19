@@ -781,6 +781,7 @@ select.input { appearance: none; background-image: linear-gradient(45deg, transp
 .stepper li.is-active { border-color: var(--blue); color: var(--text); }
 .stepper li.is-done { border-color: var(--blue-soft); color: var(--text-2); }
 .stepper button { font: inherit; letter-spacing: inherit; text-transform: inherit; color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.gift-bars { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; }
 .hint-row { display: flex; flex-direction: column; gap: 8px; }
 .hint-row__text { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text-2); }
 .hint-row__text .icon { width: 18px; height: 18px; color: var(--blue-soft); }
