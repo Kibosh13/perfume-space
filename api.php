@@ -111,8 +111,14 @@ if ($action === 'create_order') {
     $points = max(0, min((int)($input['points_spend'] ?? 0), (int)floor($after * $loyalty_max / 100)));
     $total = $after - $points;
 
-    $gift = $catalog[(int)($input['gift_id'] ?? 0)] ?? null;
-    $gift_ok = $after >= $gift_from;
+    // Пробник 2 мл на каждые $gift_from ₽ после скидок
+    $gift_count = $gift_from > 0 ? intdiv(max(0, $after), $gift_from) : 0;
+    $gift_names = [];
+    foreach (array_slice((array)($input['gift_ids'] ?? []), 0, $gift_count) as $gid) {
+        $g = $catalog[(int)$gid] ?? null;
+        if ($g && !empty($g['in_stock'])) $gift_names[] = $g['name'];
+    }
+    $gift_ok = $gift_count > 0;
 
     $orders = get_orders();
     $order = [
@@ -134,7 +140,9 @@ if ($action === 'create_order') {
         'total'           => $total,
         'delivery_price'  => 0,
         'gift_2ml'        => $gift_ok,
-        'gift_name'       => $gift_ok && $gift ? $gift['name'] : '',
+        'gift_count'      => $gift_count,
+        'gift_names'      => $gift_names,
+        'gift_name'       => implode(', ', $gift_names),
         'comment'         => $comment,
     ];
     array_unshift($orders, $order);

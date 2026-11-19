@@ -119,7 +119,7 @@ function layout_start(array $m): void {
     <div class="topbar__track">
       <?php for ($i = 0; $i < 2; $i++): ?>
         <span>Бесплатная доставка по всей России</span>
-        <span>Парфюм 2 мл в подарок при заказе от <?= format_price($gift_from) ?></span>
+        <span>Пробник 2 мл в подарок за каждые <?= format_price($gift_from) ?></span>
         <span>Скидка <?= $bundle_pct ?>% от <?= $bundle_min ?> позиций в заказе</span>
         <span>Ежедневно <?= h($config['work_hours'] ?? '') ?></span>
       <?php endfor; ?>

@@ -123,6 +123,8 @@ function public_order(array $o): array {
         'total'           => $o['total'] ?? 0,
         'gift_2ml'        => !empty($o['gift_2ml']),
         'gift_name'       => $o['gift_name'] ?? '',
+        'gift_count'      => (int)($o['gift_count'] ?? (!empty($o['gift_2ml']) ? 1 : 0)),
+        'gift_names'      => $o['gift_names'] ?? [],
         'comment'         => $o['comment'] ?? '',
     ];
 }
@@ -164,7 +166,8 @@ function send_lead_notifications(array $entry, array $config): void {
         if (!empty($entry['points_spend'])) $lines[] = "Баллы: −" . $entry['points_spend'] . " ₽";
         $lines[] = "Итого к оплате: " . ($entry['total'] ?? 0) . " ₽ (доставка бесплатно)";
         if (!empty($entry['gift_2ml'])) {
-            $lines[] = "Подарок: пробник 2 мл" . (!empty($entry['gift_name']) ? " — {$entry['gift_name']}" : '');
+            $gc = (int)($entry['gift_count'] ?? 1);
+            $lines[] = "Подарок: пробник 2 мл × {$gc}" . (!empty($entry['gift_name']) ? " — {$entry['gift_name']}" : '');
         }
         $lines[] = "Доставка: " . ($entry['delivery'] ?? '') . ", " . ($entry['address'] ?? '');
         $lines[] = "Оплата: " . ($entry['payment'] ?? '');

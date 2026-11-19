@@ -671,7 +671,7 @@ $display_products = array_slice($filtered_products, 0, 60);
                         <?php endforeach; ?>
                       <?php endif; ?>
                       <?php if (!empty($o['gift_2ml'])): ?>
-                        <div style="color:#34d399;font-weight:700;">+ 🎁 Подарок парфюм 2 мл</div>
+                        <div style="color:#34d399;font-weight:700;">+ 🎁 Пробник 2 мл в подарок × <?= max(1, (int)($o['gift_count'] ?? 1)) ?><?= !empty($o['gift_name']) ? ': ' . h($o['gift_name']) : '' ?></div>
                       <?php endif; ?>
                       <?php if (!empty($o['comment'])): ?>
                         <div style="font-size:0.76rem;color:var(--text-secondary);margin-top:4px;"><?= h($o['comment']) ?></div>

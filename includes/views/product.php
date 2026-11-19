@@ -139,7 +139,7 @@ if ($also) $tabs['liked'] = ["Тем, кому нравится {$title}, ещё
 
         <div class="pv__note">
           <div><svg class="icon"><use href="#i-fast"/></svg> Бесплатная доставка по всей России</div>
-          <div><svg class="icon"><use href="#i-gift"/></svg> Подарочная упаковка, парфюм 2 мл в подарок от <?= format_price($gift_from) ?></div>
+          <div><svg class="icon"><use href="#i-gift"/></svg> Подарочная упаковка, пробник 2 мл в подарок за каждые <?= format_price($gift_from) ?></div>
           <div><svg class="icon"><use href="#i-shield"/></svg> <a href="/original/">Оригинальный аромат: декларация и «Честный ЗНАК»</a></div>
         </div>
       </div>

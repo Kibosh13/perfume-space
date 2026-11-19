@@ -61,13 +61,14 @@
       const after = subtotal - discount - promoSum;
       const points = Math.max(0, Math.min(Number(data.points_spend) || 0, Math.floor(after * 0.5)));
       const total = after - points;
-      const gift = BY_ID.get(Number(data.gift_id));
+      const giftCount = Math.floor(after / (CFG.giftFrom || 8000));
+      const giftNames = (data.gift_ids || []).slice(0, giftCount).map((id) => BY_ID.get(Number(id))).filter(Boolean).map((r) => r[3]);
       const book = data.order_mode === 'book';
       const order = {
         id: nextId(book ? 'BR' : 'PS'), type: book ? 'booking' : 'order', status: 'active', created_at: now(),
         delivery: data.delivery || '', payment: data.payment || '', items, subtotal, discount_bundle: discount,
         promo_code: promoSum ? String(data.promo_code).toUpperCase() : '', discount_promo: promoSum, total,
-        gift_2ml: !!gift && after >= (CFG.giftFrom || 8000), gift_name: gift ? gift[3] : '', comment: data.comment || '',
+        gift_2ml: giftCount > 0, gift_count: giftCount, gift_names: giftNames, gift_name: giftNames.join(', '), comment: data.comment || '',
       };
       return delay({ ok: true, order, message: `${book ? 'Бронь' : 'Заказ'} ${order.id} принят (демо-версия: заказ никуда не отправлен).` });
     }
