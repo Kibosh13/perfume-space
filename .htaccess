@@ -7,16 +7,20 @@ AddDefaultCharset UTF-8
   RewriteEngine On
   RewriteBase /
 
+  # Без www: www.perfume-space.ru → perfume-space.ru
+  RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
+  RewriteRule ^ https://%1%{REQUEST_URI} [R=301,L,NE]
+
   # 301 со старых адресов Tilda
-  RewriteRule ^women/?$ /category/women_parfum/ [R=301,L]
-  RewriteRule ^men/?$ /category/men_parfum/ [R=301,L]
-  RewriteRule ^unisex/?$ /category/unisex/ [R=301,L]
-  RewriteRule ^discount/?$ /#promo [R=301,L,NE]
-  RewriteRule ^present/?$ /#promo [R=301,L,NE]
-  RewriteRule ^reviews/?$ /#reviews [R=301,L,NE]
-  RewriteRule ^catalog/?$ /#catalog [R=301,L,NE]
-  RewriteRule ^index\.html$ / [R=301,L]
-  RewriteRule ^privacy\.php$ /privacy/ [R=301,L]
+  RewriteRule ^women/?$ https://%{HTTP_HOST}/category/women_parfum/ [R=301,L]
+  RewriteRule ^men/?$ https://%{HTTP_HOST}/category/men_parfum/ [R=301,L]
+  RewriteRule ^unisex/?$ https://%{HTTP_HOST}/category/unisex/ [R=301,L]
+  RewriteRule ^discount/?$ https://%{HTTP_HOST}/#promo [R=301,L,NE]
+  RewriteRule ^present/?$ https://%{HTTP_HOST}/#promo [R=301,L,NE]
+  RewriteRule ^reviews/?$ https://%{HTTP_HOST}/#reviews [R=301,L,NE]
+  RewriteRule ^catalog/?$ https://%{HTTP_HOST}/#catalog [R=301,L,NE]
+  RewriteRule ^index\.html$ https://%{HTTP_HOST}/ [R=301,L]
+  RewriteRule ^privacy\.php$ https://%{HTTP_HOST}/privacy/ [R=301,L]
 
   # Служебные папки закрыты
   RewriteRule ^(includes|data|reports|tools)/ - [F,L]
