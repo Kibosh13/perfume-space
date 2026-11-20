@@ -112,7 +112,7 @@ if ($is_auth && $_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        if (!empty($_POST['new_admin_password'])) {
+        if (!empty($_POST['new_admin_password']) && mb_strlen(trim((string)$_POST['new_admin_password'])) >= 8) {
             $config['admin_password_hash'] = password_hash(trim((string)$_POST['new_admin_password']), PASSWORD_DEFAULT);
         }
 
@@ -333,6 +333,9 @@ $display_products = array_slice($filtered_products, 0, 60);
   <main class="container admin-wrap">
     <h1 class="section-title" style="margin-bottom:20px;">Управление магазином Perfume Space</h1>
 
+    <?php if ($is_auth && empty($config['admin_password_hash'])): ?>
+      <div class="flash-banner" style="background:rgba(245,196,81,.12);border-color:rgba(245,196,81,.5);color:var(--warn)">Вход по стандартному паролю. Смените пароль: вкладка «2. Тексты, акции и контакты» → «Пароль админки».</div>
+    <?php endif; ?>
     <?php if ($flash !== ''): ?>
       <div class="flash-banner"><?= h($flash) ?></div>
     <?php endif; ?>
@@ -630,6 +633,18 @@ $display_products = array_slice($filtered_products, 0, 60);
           <div class="form-group">
             <label>Текст «Доставка»</label>
             <textarea name="delivery_text" class="form-control" rows="2"><?= h($config['delivery_text'] ?? '') ?></textarea>
+          </div>
+
+          <h3 style="margin-top:16px;color:var(--blue-ice);">Пароль админки</h3>
+          <div class="two-col-grid">
+            <div class="form-group">
+              <label>Новый пароль (оставьте пустым, чтобы не менять)</label>
+              <input type="password" name="new_admin_password" class="form-control" autocomplete="new-password" minlength="8">
+            </div>
+            <div class="form-group">
+              <label>&nbsp;</label>
+              <p style="color:var(--text-secondary);font-size:14px"><?= empty($config['admin_password_hash']) ? '<span class="tbd">Сейчас действует стандартный пароль — обязательно смените его</span>' : 'Пароль задан.' ?></p>
+            </div>
           </div>
 
           <button type="submit" class="btn btn--primary" style="margin-top:14px;">Сохранить все изменения на сайте</button>
