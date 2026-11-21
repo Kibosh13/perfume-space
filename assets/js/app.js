@@ -972,7 +972,7 @@
     if (d.searchAll !== undefined && $('#grid') && !SCOPE) { e.preventDefault(); setFilter({ q: $('#searchInput').value }, true); toggleSearch(false); return; }
     if (d.goal) goal(d.goal);
     if (t.closest('#nav') && !t.closest('.nav__item--mega > .nav__link')) $('#nav').classList.remove('is-open');
-    if (t.matches('.nav__item--mega > .nav__link') && window.matchMedia('(max-width: 1080px)').matches) { e.preventDefault(); t.parentElement.classList.toggle('is-open'); }
+    if (t.matches('.nav__item--mega > .nav__link') && window.matchMedia('(max-width: 1280px)').matches) { e.preventDefault(); t.parentElement.classList.toggle('is-open'); }
   });
 
   $('#overlay').addEventListener('click', closeAll);

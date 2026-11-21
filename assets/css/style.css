@@ -126,14 +126,14 @@ ul { list-style: none; }
   background: rgba(5, 7, 12, .82); backdrop-filter: saturate(140%) blur(18px); -webkit-backdrop-filter: saturate(140%) blur(18px);
   border-bottom: 1px solid var(--line);
 }
-.header__inner { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 40px; height: var(--header-h); }
+.header__inner { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 40px; height: var(--header-h); }
 
 .logo { display: inline-flex; align-items: center; gap: 12px; }
 .logo img { height: 44px; width: auto; }
 .logo__word { display: flex; flex-direction: column; line-height: 1; }
 .logo__name { font-family: 'Caveat', cursive; font-size: 32px; font-weight: 600; font-style: normal; letter-spacing: 0; line-height: 1; white-space: nowrap; text-transform: none; }
 
-.nav { display: flex; justify-content: center; gap: 34px; }
+.nav { display: flex; justify-content: center; justify-content: safe center; min-width: 0; gap: 34px; }
 .nav a { position: relative; font-size: 12px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--text-2); padding: 8px 0; }
 .nav a::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: var(--blue-soft); transform: scaleX(0); transform-origin: left; transition: transform .3s var(--ease); }
 .nav a:hover { color: var(--text); }
@@ -813,15 +813,32 @@ select.input { appearance: none; background-image: linear-gradient(45deg, transp
 .next-steps { text-align: left; margin: 0 auto 24px; max-width: 360px; padding-left: 20px; color: var(--text-2); font-size: 14px; display: flex; flex-direction: column; gap: 8px; }
 
 /* ---------- Responsive ---------- */
-@media (max-width: 1440px) {
-  .header__inner { gap: 24px; }
-  .nav { gap: 22px; }
-  .nav a { letter-spacing: .1em; font-size: 11px; }
+/* Шапка десктопа: логотип, меню и иконки с запасом по ширине (контейнер не шире 1360 px) */
+.header__inner { gap: 32px; }
+.nav { gap: 22px; }
+.nav a { letter-spacing: .1em; font-size: 11px; }
+.logo__name { font-size: 28px; }
+@media (max-width: 1400px) {
+  .nav { gap: 18px; }
+}
+
+/* Меню прячется в бургер раньше, чем начинает упираться в логотип */
+@media (max-width: 1280px) {
+  .nav { display: none; }
+  .header__inner { grid-template-columns: auto 1fr; gap: 16px; }
+  .tools { justify-content: flex-end; }
+  .burger { display: inline-flex; }
+  .nav.is-open { display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 0; position: absolute; top: 100%; left: 0; right: 0; padding: 12px 32px 24px; background: var(--ink-2); border-bottom: 1px solid var(--line); max-height: calc(100vh - var(--header-h)); overflow-y: auto; }
+  .nav.is-open a { padding: 16px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+  .nav.is-open .nav__item { display: block; border-bottom: 1px solid var(--line); }
+  .nav.is-open .nav__item > a { border-bottom: 0; }
+  .nav.is-open .mega { display: none; position: static; opacity: 1; visibility: visible; transform: none; padding: 0 0 16px; border: 0; background: none; }
+  .nav.is-open .nav__item.is-open .mega { display: block; }
+  .nav.is-open .mega__inner { grid-template-columns: repeat(3, 1fr); gap: 20px; padding: 0; }
+  .nav.is-open .mega__col a { padding: 7px 0; border: 0; font-size: 14px; letter-spacing: 0; text-transform: none; }
 }
 
 @media (max-width: 1240px) {
-  .nav { gap: 16px; }
-  .nav > a[href$="#contacts"] { display: none; }
   .products { grid-template-columns: repeat(3, 1fr); }
   .rail { grid-auto-columns: calc((100% - 2px) / 3); }
   .brand-index { columns: 3; }
