@@ -72,7 +72,7 @@ function layout_start(array $m): void {
   <meta property="og:image" content="<?= h($og_image) ?>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Manrope:wght@400;500;600;700&family=Caveat:wght@500;600;700&display=swap" rel="stylesheet">
   <?= $m['head_extra'] ?? '' ?>
   <link rel="stylesheet" href="/assets/css/style.css?v=<?= @filemtime(__DIR__ . '/../assets/css/style.css') ?>">
   <?php foreach ((array)($m['jsonld'] ?? []) as $ld): ?>
@@ -131,7 +131,7 @@ function layout_start(array $m): void {
   <div class="container header__inner">
     <a href="/" class="logo" aria-label="Perfume Space — на главную">
       <img src="/assets/img/logo-white.png" alt="Perfume Space" width="56" height="44">
-      <span class="logo__word"><span class="logo__name">Perfume<br>Space</span></span>
+      <span class="logo__word"><span class="logo__name">Perfume Space</span></span>
     </a>
 
     <nav class="nav" id="nav" aria-label="Основное меню">
@@ -207,7 +207,7 @@ function layout_end(array $js = []): void {
   <div class="container">
     <div class="footer__top">
       <div class="footer__about">
-        <a href="/" class="logo"><img src="/assets/img/logo-white.png" alt="Perfume Space" width="56" height="44" loading="lazy"><span class="logo__word"><span class="logo__name">Perfume<br>Space</span></span></a>
+        <a href="/" class="logo"><img src="/assets/img/logo-white.png" alt="Perfume Space" width="56" height="44" loading="lazy"><span class="logo__word"><span class="logo__name">Perfume Space</span></span></a>
         <p>Оригинальная нишевая и люксовая парфюмерия на распив. Бесплатная доставка по всей России.</p>
       </div>
       <div>

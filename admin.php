@@ -276,7 +276,7 @@ $display_products = array_slice($filtered_products, 0, 60);
   <title>Админ-панель — Perfume Space</title>
   <meta name="robots" content="noindex, nofollow">
   <link rel="icon" type="image/png" href="/assets/img/favicon.png">
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Manrope:wght@400;500;600;700&family=Caveat:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/assets/css/style.css?v=<?= @filemtime(__DIR__ . '/assets/css/style.css') ?>">
   <style>
     .admin-wrap { padding: 48px 32px 80px; }
@@ -293,8 +293,8 @@ $display_products = array_slice($filtered_products, 0, 60);
     .p-badge--hit { background: var(--blue); color: #fff; }
     .zn-badge { display: inline-block; padding: 3px 10px; border-radius: 2px; font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; background: rgba(74,222,128,.15); color: var(--ok); }
     .brand-logo { display: inline-flex; align-items: center; gap: 12px; } .brand-logo__img { height: 40px; } .brand-logo__text { display: flex; flex-direction: column; }
-    .brand-logo__name { font-family: var(--serif); font-size: 20px; font-style: italic; font-weight: 500; letter-spacing: 0; line-height: .95; } .brand-logo__sub { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--mute); }
-    @media (max-width: 760px) { .brand-logo__sub { display: none; } .brand-logo__name { font-size: 16px; white-space: nowrap; } .two-col-grid { grid-template-columns: 1fr; } .admin-wrap { padding: 32px 16px; } }
+    .brand-logo__name { font-family: 'Caveat', cursive; font-size: 28px; font-style: normal; font-weight: 600; letter-spacing: 0; line-height: 1; white-space: nowrap; } .brand-logo__sub { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--mute); }
+    @media (max-width: 760px) { .brand-logo__sub { display: none; } .brand-logo__name { font-size: 24px; white-space: nowrap; } .two-col-grid { grid-template-columns: 1fr; } .admin-wrap { padding: 32px 16px; } }
     .admin-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 24px; }
     .admin-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
     .admin-table th, .admin-table td { padding: 10px 8px; border-bottom: 1px solid var(--border-subtle); text-align: left; vertical-align: middle; }
