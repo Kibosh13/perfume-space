@@ -68,7 +68,7 @@ $recent = array_slice($orders, 0, 8);
       <div><b><?= $in_stock ?></b><span>в наличии</span></div>
       <div><b><?= count(brand_list()) ?></b><span>брендов</span></div>
       <div><b><?= count(collections()) ?></b><span>подборок</span></div>
-      <div><b><?= count(articles(false)) ?></b><span>статей</span></div>
+      <?php if (ARTICLES_ENABLED): ?><div><b><?= count(articles(false)) ?></b><span>статей</span></div><?php endif; ?>
       <div><b><?= count(array_filter($reviews, fn($r) => ($r['status'] ?? '') === 'published')) ?></b><span>отзывов</span></div>
     </div>
   </section>

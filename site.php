@@ -45,6 +45,10 @@ if ($route === 'brands' && count($parts) === 1) {
     require __DIR__ . '/includes/views/brands.php';
     exit;
 }
+if ($route === 'statiy' && !ARTICLES_ENABLED) {
+    require __DIR__ . '/404.php';
+    exit;
+}
 if ($route === 'statiy' && count($parts) === 1) {
     require __DIR__ . '/includes/views/articles.php';
     exit;

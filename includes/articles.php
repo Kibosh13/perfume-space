@@ -11,6 +11,12 @@ require_once __DIR__ . '/catalog.php';
 
 define('ARTICLES_FILE', DATA_DIR . '/articles.json');
 
+/**
+ * Раздел статей пока в разработке: скрыт с сайта, из меню, карты сайта и админки.
+ * Чтобы включить — поставьте true.
+ */
+const ARTICLES_ENABLED = false;
+
 function articles(bool $only_published = true): array {
     $list = json_load(ARTICLES_FILE, []);
     if ($only_published) {

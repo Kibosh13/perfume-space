@@ -6,8 +6,10 @@ $urls = [['/', '1.0', 'daily'], ['/brands/', '0.8', 'weekly'], ['/category/', '0
 foreach (collections() as $c) $urls[] = [collection_url($c), '0.8', 'daily'];
 foreach (array_keys(brand_list()) as $b) $urls[] = [brand_url($b), '0.7', 'weekly'];
 foreach (catalog() as $p) $urls[] = [product_url($p), '0.6', 'weekly'];
-$urls[] = ['/statiy/', '0.7', 'weekly'];
-foreach (articles() as $a) $urls[] = [article_url($a), '0.6', 'monthly'];
+if (ARTICLES_ENABLED) {
+    $urls[] = ['/statiy/', '0.7', 'weekly'];
+    foreach (articles() as $a) $urls[] = [article_url($a), '0.6', 'monthly'];
+}
 foreach (info_pages() as $p) $urls[] = ['/' . $p['slug'] . '/', '0.4', 'monthly'];
 echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n" . '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
 foreach ($urls as [$u, $prio, $freq]) {
