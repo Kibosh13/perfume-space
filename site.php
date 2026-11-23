@@ -45,6 +45,23 @@ if ($route === 'brands' && count($parts) === 1) {
     require __DIR__ . '/includes/views/brands.php';
     exit;
 }
+if ($route === 'statiy' && count($parts) === 1) {
+    require __DIR__ . '/includes/views/articles.php';
+    exit;
+}
+// Черновик статьи виден только вошедшему администратору
+if ($route === 'statiy' && count($parts) === 2 && !article_by_slug($slug) && isset($_COOKIE[session_name()])) {
+    session_start();
+    if (!empty($_SESSION['ps_admin_auth'])) {
+        foreach (articles(false) as $draft) {
+            if ($draft['slug'] === $slug) { $article = $draft; $page_robots = 'noindex'; require __DIR__ . '/includes/views/article.php'; exit; }
+        }
+    }
+}
+if ($route === 'statiy' && count($parts) === 2 && ($article = article_by_slug($slug))) {
+    require __DIR__ . '/includes/views/article.php';
+    exit;
+}
 if ($route === 'category' && count($parts) === 1) {
     require __DIR__ . '/includes/views/collections.php';
     exit;

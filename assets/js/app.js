@@ -444,14 +444,15 @@
     const maxPoints = user ? Math.min(user.points, Math.floor(after * LOYALTY_MAX / 100)) : 0;
     const points = state.usePoints ? maxPoints : 0;
     const total = after - points;
-    // Пробник 2 мл на каждые GIFT_FROM ₽ после всех скидок
-    const giftCount = Math.max(0, Math.floor(after / GIFT_FROM));
+    // Пробник считается от итоговой суммы после ВСЕХ скидок: за количество, промокод и баллы
+    const giftBase = total;
+    const giftCount = Math.max(0, Math.floor(giftBase / GIFT_FROM));
     if (state.giftIds.length > giftCount) { state.giftIds = state.giftIds.slice(0, giftCount); save('ps_gifts', state.giftIds); }
     const gifts = Array.from({ length: giftCount }, (_, i) => (state.giftIds[i] ? BY_ID.get(state.giftIds[i]) : null));
     const gift = giftCount > 0;
     const giftsMissing = gifts.filter((g) => !g).length;
-    const toNextGift = GIFT_FROM - (after % GIFT_FROM);
-    return { sum, qty, discount, promo, promoSum, promoNote, points, maxPoints, after, total, gift, giftCount, gifts, giftsMissing, toNextGift, user };
+    const toNextGift = GIFT_FROM - (giftBase % GIFT_FROM);
+    return { sum, qty, discount, promo, promoSum, promoNote, points, maxPoints, after, total, giftBase, gift, giftCount, gifts, giftsMissing, toNextGift, user };
   };
 
   const addToCart = (id, btn) => {
@@ -494,7 +495,7 @@
           <div class="gift-bars">${Array.from({ length: t.giftCount }, () => '<div class="bar"><i style="width:100%"></i></div>').join('')}</div></div>` : ''}
         <div class="hint-row">
           <div class="hint-row__text">${icon('gift')}<span>${t.giftCount ? `До ${t.giftCount + 1}-го пробника осталось` : 'До подарочного пробника осталось'} <b>${money(t.toNextGift)}</b></span></div>
-          <div class="bar"><i style="width:${Math.min(100, (t.after % GIFT_FROM) / GIFT_FROM * 100)}%"></i></div>
+          <div class="bar"><i style="width:${Math.min(100, (t.giftBase % GIFT_FROM) / GIFT_FROM * 100)}%"></i></div>
         </div>
         <div class="hint-row is-ok"><div class="hint-row__text">${icon('fast')} Бесплатная доставка по всей России</div></div>
       </div>`;
@@ -705,18 +706,20 @@
   };
 
   /* ---------- Заказы ---------- */
-  const STATUS = { active: 'В работе', completed: 'Завершён' };
+  const STATUS = { active: 'Новый', new: 'Новый', confirmed: 'Подтверждён', paid: 'Оплачен', shipped: 'Отправлен', completed: 'Завершён', cancelled: 'Отменён' };
+  const isDone = (o) => o.status === 'completed' || o.status === 'cancelled';
 
   const renderOrders = () => {
-    const list = state.orders.filter((o) => (state.ordersTab === 'active' ? o.status !== 'completed' : o.status === 'completed'));
+    const list = state.orders.filter((o) => (state.ordersTab === 'active' ? !isDone(o) : isDone(o)));
     $$('#orderTabs button').forEach((b) => b.classList.toggle('is-active', b.dataset.v === state.ordersTab));
     const items = list.map((o) => `
       <div class="order">
         <div class="order__top">
           <div><div class="order__id">${o.type === 'request' ? 'Заявка' : o.type === 'booking' ? 'Бронь' : 'Заказ'} ${esc(o.id)}</div><div class="order__date">${esc(o.created_at)}</div></div>
-          <span class="status ${o.status === 'completed' ? 'status--done' : ''}">${STATUS[o.status] || o.status}</span>
+          <span class="status ${isDone(o) ? 'status--done' : ''}">${STATUS[o.status] || o.status}</span>
         </div>
         ${o.items && o.items.length ? `<div class="order__items">${o.items.map((i) => `${esc(i.name)}, ${esc(i.volume)} мл × ${i.qty}`).join('<br>')}</div>` : `<div class="order__items">${esc(o.comment)}</div>`}
+        ${o.track ? `<div class="order__items">Трек-номер: <b>${esc(o.track)}</b></div>` : ''}
         ${o.total ? `<div class="order__sum">${money(o.total)}${o.gift_2ml ? ' · ' + ((o.gift_count || 1) > 1 ? (o.gift_count + ' пробника 2 мл') : 'пробник 2 мл') + ' в подарок' + ((o.gift_names || []).length ? ': ' + (o.gift_names || []).map(esc).join(', ') : (o.gift_name ? ': ' + esc(o.gift_name) : '')) : ''}</div>` : ''}
       </div>`).join('');
     $('#ordersList').innerHTML = (items || emptyBlock('box', state.ordersTab === 'active' ? 'Активных заказов нет' : 'Завершённых заказов нет', 'Здесь появятся заказы, оформленные на этом устройстве.')) + `
@@ -736,7 +739,7 @@
     const before = new Map(state.orders.map((o) => [o.id, o.status]));
     res.orders.forEach((o) => {
       const prev = before.get(o.id);
-      if (prev && prev !== o.status) note(`${o.id}: ${STATUS[o.status] || o.status}`, o.status === 'completed' ? 'Заказ завершён. Спасибо за покупку!' : 'Статус заказа обновлён.');
+      if (prev && prev !== o.status) note(`${o.id}: ${STATUS[o.status] || o.status}`, o.status === 'completed' ? 'Заказ завершён. Спасибо за покупку!' : o.status === 'shipped' ? 'Заказ отправлен' + (o.track ? ', трек-номер ' + o.track : '') + '.' : 'Статус заказа обновлён.');
       const i = state.orders.findIndex((x) => x.id === o.id);
       if (i >= 0) state.orders[i] = o; else state.orders.unshift(o);
     });
@@ -768,7 +771,7 @@
     const set = (k, n) => { const el = $(`[data-count="${k}"]`); if (el) el.textContent = n > 0 ? n : ''; };
     set('cart', totals().qty);
     set('favs', state.favs.length);
-    set('orders', state.orders.filter((o) => o.status !== 'completed').length);
+    set('orders', state.orders.filter((o) => !isDone(o)).length);
     set('notes', state.notes.filter((n) => n.unread).length);
   };
 
@@ -972,7 +975,7 @@
     if (d.searchAll !== undefined && $('#grid') && !SCOPE) { e.preventDefault(); setFilter({ q: $('#searchInput').value }, true); toggleSearch(false); return; }
     if (d.goal) goal(d.goal);
     if (t.closest('#nav') && !t.closest('.nav__item--mega > .nav__link')) $('#nav').classList.remove('is-open');
-    if (t.matches('.nav__item--mega > .nav__link') && window.matchMedia('(max-width: 1280px)').matches) { e.preventDefault(); t.parentElement.classList.toggle('is-open'); }
+    if (t.matches('.nav__item--mega > .nav__link') && window.matchMedia('(max-width: 1360px)').matches) { e.preventDefault(); t.parentElement.classList.toggle('is-open'); }
   });
 
   $('#overlay').addEventListener('click', closeAll);

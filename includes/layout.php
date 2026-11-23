@@ -3,6 +3,7 @@
  * Общий каркас страниц: <head>, бегущая строка, шапка с меню, подвал, корзина и панели.
  */
 require_once __DIR__ . '/catalog.php';
+require_once __DIR__ . '/articles.php';
 
 function site_url(): string {
     return rtrim(get_site_config()['domain'] ?? 'https://perfume-space.ru', '/');
@@ -150,6 +151,7 @@ function layout_start(array $m): void {
       </div>
       <a href="/brands/">Бренды</a>
       <a href="/category/">Подборки</a>
+      <a href="/statiy/">Статьи</a>
       <a href="<?= $home ?>#promo">Акции</a>
       <a href="/original/">Оригинальность</a>
       <a href="/dostavka/">Доставка</a>
@@ -220,6 +222,7 @@ function layout_end(array $js = []): void {
           <li><a href="/category/bestsellers/">Хиты продаж</a></li>
           <li><a href="/brands/">Бренды</a></li>
           <li><a href="/category/">Все подборки</a></li>
+          <li><a href="/statiy/">Библиотека парфюмера</a></li>
         </ul>
       </div>
       <div>

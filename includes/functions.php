@@ -107,11 +107,27 @@ function save_orders(array $orders): bool {
     ) !== false;
 }
 
+const ORDER_STATUSES = [
+    'new'       => 'Новый',
+    'confirmed' => 'Подтверждён',
+    'paid'      => 'Оплачен',
+    'shipped'   => 'Отправлен',
+    'completed' => 'Завершён',
+    'cancelled' => 'Отменён',
+];
+
+/** Статус заказа (старое «active» = «Новый») */
+function order_status(array $o): string {
+    $s = (string)($o['status'] ?? 'new');
+    return isset(ORDER_STATUSES[$s]) ? $s : 'new';
+}
+
 function public_order(array $o): array {
     return [
         'id'              => $o['id'] ?? '',
         'type'            => $o['type'] ?? 'order',
-        'status'          => $o['status'] ?? 'active',
+        'status'          => order_status($o),
+        'track'           => $o['track'] ?? '',
         'created_at'      => $o['created_at'] ?? '',
         'delivery'        => $o['delivery'] ?? '',
         'payment'         => $o['payment'] ?? '',

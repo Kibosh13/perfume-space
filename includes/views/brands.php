@@ -8,8 +8,8 @@ foreach ($brands as $name => $count) {
 }
 layout_start([
     'page' => 'brands',
-    'title' => 'Все бренды парфюмерии на распив — ' . count($brands) . ' парфюмерных домов | Perfume Space',
-    'description' => 'Бренды нишевой и люксовой парфюмерии в Perfume Space: Tom Ford, Kilian, Amouage, Creed, Xerjoff и ещё ' . (count($brands) - 5) . '. Оригинальные ароматы на распив от 5 мл.',
+    'title' => (get_site_config()['seo']['brands']['title'] ?? '') ?: 'Все бренды парфюмерии на распив — ' . count($brands) . ' парфюмерных домов | Perfume Space',
+    'description' => (get_site_config()['seo']['brands']['description'] ?? '') ?: 'Бренды нишевой и люксовой парфюмерии в Perfume Space: Tom Ford, Kilian, Amouage, Creed, Xerjoff и ещё ' . (count($brands) - 5) . '. Оригинальные ароматы на распив от 5 мл.',
     'canonical' => '/brands/',
 ]);
 ?>

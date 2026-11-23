@@ -61,7 +61,7 @@
       const after = subtotal - discount - promoSum;
       const points = Math.max(0, Math.min(Number(data.points_spend) || 0, Math.floor(after * 0.5)));
       const total = after - points;
-      const giftCount = Math.floor(after / (CFG.giftFrom || 8000));
+      const giftCount = Math.floor(total / (CFG.giftFrom || 8000));
       const giftNames = (data.gift_ids || []).slice(0, giftCount).map((id) => BY_ID.get(Number(id))).filter(Boolean).map((r) => r[3]);
       const book = data.order_mode === 'book';
       const order = {

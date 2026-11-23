@@ -313,7 +313,7 @@ if ($act === 'save_page') {
     $pages = json_load(PAGES_FILE, []);
     $orig = post_str('orig_slug', 120);
     $slug = slugify(post_str('slug', 120) ?: post_str('title', 120));
-    $reserved = ['aromat', 'brand', 'brands', 'category', 'admin', 'api', 'assets', 'data', 'includes', 'catalog-js', 'sitemap'];
+    $reserved = ['aromat', 'brand', 'brands', 'category', 'statiy', 'admin', 'api', 'assets', 'data', 'includes', 'catalog-js', 'sitemap'];
     if (in_array($slug, $reserved, true)) $slug .= '-page';
     $page = null;
     foreach ($pages as $p) if (($p['slug'] ?? '') === $orig) $page = $p;

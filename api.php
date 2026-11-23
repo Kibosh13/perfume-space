@@ -112,7 +112,7 @@ if ($action === 'create_order') {
     $total = $after - $points;
 
     // Пробник 2 мл на каждые $gift_from ₽ после скидок
-    $gift_count = $gift_from > 0 ? intdiv(max(0, $after), $gift_from) : 0;
+    $gift_count = $gift_from > 0 ? intdiv(max(0, $total), $gift_from) : 0; // от итога после всех скидок и баллов
     $gift_names = [];
     foreach (array_slice((array)($input['gift_ids'] ?? []), 0, $gift_count) as $gid) {
         $g = $catalog[(int)$gid] ?? null;
@@ -124,7 +124,7 @@ if ($action === 'create_order') {
     $order = [
         'id'              => next_id($orders, $mode === 'book' ? 'BR' : 'PS'),
         'type'            => $mode === 'book' ? 'booking' : 'order',
-        'status'          => 'active',
+        'status'          => 'new',
         'created_at'      => date('d.m.Y H:i'),
         'customer'        => ['name' => $name, 'phone' => $phone, 'email' => $email],
         'delivery'        => $delivery,
@@ -175,7 +175,7 @@ if ($action === 'create_request') {
     $req = [
         'id'         => next_id($orders, 'RQ'),
         'type'       => 'request',
-        'status'     => 'active',
+        'status'     => 'new',
         'created_at' => date('d.m.Y H:i'),
         'customer'   => ['name' => $name, 'phone' => $phone, 'email' => $email],
         'delivery'   => '',

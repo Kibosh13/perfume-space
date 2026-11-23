@@ -3,8 +3,8 @@ $site = site_url();
 $menu = collections_menu();
 layout_start([
     'page' => 'collections',
-    'title' => 'Категории и подборки парфюмерии на распив | Perfume Space',
-    'description' => 'Женская, мужская, нишевая, шлейфовая парфюмерия, новинки и хиты продаж, ароматы по группам и концентрации — подборки Perfume Space.',
+    'title' => (get_site_config()['seo']['collections']['title'] ?? '') ?: 'Категории и подборки парфюмерии на распив | Perfume Space',
+    'description' => (get_site_config()['seo']['collections']['description'] ?? '') ?: 'Женская, мужская, нишевая, шлейфовая парфюмерия, новинки и хиты продаж, ароматы по группам и концентрации — подборки Perfume Space.',
     'canonical' => '/category/',
 ]);
 ?>
