@@ -117,7 +117,6 @@
                       <td style="white-space:nowrap;">
                         <label style="display:block;font-size:0.76rem;"><input type="checkbox" name="in_stock" <?= !empty($p['in_stock']) ? 'checked' : '' ?>> В наличии</label>
                         <label style="display:block;font-size:0.76rem;"><input type="checkbox" name="is_hit" <?= !empty($p['is_hit']) ? 'checked' : '' ?>> Хит</label>
-                        <label style="display:block;font-size:0.76rem;"><input type="checkbox" name="is_starter" <?= !empty($p['is_starter']) ? 'checked' : '' ?>> Старт-сет</label>
                       </td>
                       <td style="white-space:nowrap;">
                         <button type="submit" class="btn btn--primary btn--sm" style="padding:6px 12px;">Сохранить</button>

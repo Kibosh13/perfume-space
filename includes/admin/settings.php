@@ -34,7 +34,7 @@ $faq = $config['faq'] ?? $default_faq;
     <h2>Первый экран</h2>
     <?= $field('Главный заголовок (H1)', 'hero_title') ?>
     <?= $field('Подзаголовок', 'hero_subtitle', 'textarea') ?>
-    <div class="two-col-grid"><?= $field('График работы', 'work_hours') ?><?= $field('Бейдж над заголовком', 'hero_badge') ?></div>
+    <div class="two-col-grid"><?= $field('График работы', 'work_hours', 'text', 'Показывается в бегущей строке, в блоке заявки и в контактах.') ?></div>
     <p class="hint">Баннеры с промокодами на первом экране включаются в разделе «Промокоды» (галочка «Баннер на первом экране»).</p>
     <h2>Тексты разделов</h2>
     <?= $field('«Только оригинальная продукция» — текст блока', 'about_text', 'textarea') ?>
@@ -54,21 +54,19 @@ $faq = $config['faq'] ?? $default_faq;
     <h2>Пробник в подарок</h2>
     <div class="two-col-grid">
       <?= $field('Пробник 2 мл за каждые, ₽', 'promos.gift_threshold', 'number', 'Считается от итоговой суммы после всех скидок и баллов: 2 порога — 2 пробника и т. д.') ?>
-      <?= $field('Заголовок акции', 'promos.gift_title') ?>
+      <?= $field('Заголовок акции (блок «Акции» на главной)', 'promos.gift_title') ?>
     </div>
-    <?= $field('Описание акции', 'promos.gift_desc', 'textarea') ?>
     <h2>Скидка за количество</h2>
     <div class="two-col-grid">
       <?= $field('От скольких позиций в заказе', 'promos.bundle_min_items', 'number') ?>
       <?= $field('Размер скидки, %', 'promos.bundle_discount_percent', 'number') ?>
     </div>
-    <?= $field('Заголовок', 'promos.bundle_title') ?>
     <h2>Бонусы</h2>
     <div class="two-col-grid">
       <?= $field('Начисляется с покупки, %', 'promos.loyalty_percent', 'number') ?>
       <?= $field('Можно оплатить баллами до, % заказа', 'promos.loyalty_max_share', 'number') ?>
     </div>
-    <?= $field('Заголовок', 'promos.loyalty_title') ?>
+    <?= $field('Заголовок (блок «Акции» на главной)', 'promos.loyalty_title') ?>
     <?= $field('Условия (текст в блоке «Акции»)', 'promos.loyalty_desc', 'textarea') ?>
 
   <?php elseif ($sub === 'seo'): ?>
