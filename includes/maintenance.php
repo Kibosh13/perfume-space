@@ -9,7 +9,9 @@ function maintenance_cfg(): array {
 }
 
 function maintenance_enabled(): bool {
-    return !empty(maintenance_cfg()['enabled']);
+    $m = get_site_config()['maintenance'] ?? null;
+    // Пока режим ни разу не сохраняли в админке, сайт закрыт (просьба заказчика)
+    return is_array($m) && array_key_exists('enabled', $m) ? !empty($m['enabled']) : true;
 }
 
 /** Может ли текущий посетитель видеть сайт, пока он закрыт */

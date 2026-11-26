@@ -35,7 +35,7 @@ $faq = $config['faq'] ?? $default_faq;
   <input type="hidden" name="admin_action" value="save_maintenance">
   <h2>Временно закрыть сайт</h2>
   <p class="muted">Пока сайт закрыт, посетители на любой странице видят заглушку с вашими контактами, а оформить заказ нельзя. Поисковики получают ответ «временно недоступен» и не выкидывают сайт из поиска. Вы, пока вошли в админку, видите сайт как обычно.</p>
-  <label class="check-line" style="font-size:16px;font-weight:600"><input type="checkbox" name="enabled" value="1" <?= !empty($mt['enabled']) ? 'checked' : '' ?>> Сайт закрыт для посетителей</label>
+  <label class="check-line" style="font-size:16px;font-weight:600"><input type="checkbox" name="enabled" value="1" <?= maintenance_enabled() ? 'checked' : '' ?>> Сайт закрыт для посетителей</label>
   <div class="form-group"><label>Заголовок заглушки</label><input class="form-control" name="title" value="<?= h($mt['title'] ?? '') ?>" placeholder="Сайт скоро откроется"></div>
   <div class="form-group"><label>Текст заглушки</label><textarea class="form-control" name="text" rows="3" placeholder="Мы готовим обновлённый магазин оригинальной парфюмерии на распив. Совсем скоро всё заработает — а пока с нами можно связаться напрямую."><?= h($mt['text'] ?? '') ?></textarea><small class="hint">Под текстом автоматически показываются телефон, мессенджеры и почта из «Контакты и реквизиты».</small></div>
   <?php if ($preview): ?>

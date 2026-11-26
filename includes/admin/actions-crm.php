@@ -65,7 +65,7 @@ if ($act === 'articles_public') {
 /* ---------- Режим «Сайт закрыт» ---------- */
 if ($act === 'save_maintenance') {
     $m = (array)($config['maintenance'] ?? []);
-    $was = !empty($m['enabled']);
+    $was = maintenance_enabled();
     $m['enabled'] = !empty($_POST['enabled']);
     $m['title'] = mb_substr(trim((string)($_POST['title'] ?? '')), 0, 150);
     $m['text'] = mb_substr(trim((string)($_POST['text'] ?? '')), 0, 2000);

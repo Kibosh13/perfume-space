@@ -162,7 +162,7 @@ $display_products = array_slice($filtered_products, ($p_page - 1) * $per_page, $
       <?php if (empty($config['admin_password_hash'])): ?>
         <div class="flash-banner flash-banner--warn">Вход по стандартному паролю. <a href="/admin.php?tab=settings&sub=access">Смените пароль</a> — это займёт минуту.</div>
       <?php endif; ?>
-      <?php if (!empty($config['maintenance']['enabled'])): ?>
+      <?php if (maintenance_enabled()): ?>
         <div class="flash-banner flash-banner--warn">Сайт закрыт для посетителей — они видят заглушку «<?= h(($config['maintenance']['title'] ?? '') ?: 'Сайт скоро откроется') ?>». <a href="/admin.php?tab=settings&sub=closed">Открыть сайт</a></div>
       <?php endif; ?>
       <?php if ($flash !== ''): ?><div class="flash-banner"><?= h($flash) ?></div><?php endif; ?>
