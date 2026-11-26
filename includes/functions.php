@@ -386,3 +386,5 @@ function promo_public(array $p): array {
     [$type, $value] = promo_value($p);
     return ['code' => mb_strtoupper((string)$p['code']), 'type' => $type, 'value' => $value, 'min_sum' => (int)($p['min_sum'] ?? 0), 'title' => (string)($p['title'] ?? '')];
 }
+
+require_once __DIR__ . '/maintenance.php';

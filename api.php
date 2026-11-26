@@ -4,6 +4,7 @@
  */
 header('Content-Type: application/json; charset=UTF-8');
 require_once __DIR__ . '/includes/functions.php';
+maintenance_gate(true);
 
 function respond(array $data, int $code = 200): void {
     http_response_code($code);

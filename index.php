@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/includes/layout.php';
+maintenance_gate();
 handle_legacy_redirects();
 
 $config = get_site_config();

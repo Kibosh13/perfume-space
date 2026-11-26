@@ -82,7 +82,6 @@ if (!empty($_SESSION['ps_flash'])) {
 
 $tab = $_GET['tab'] ?? 'dashboard';
 if ($tab === 'texts') $tab = 'settings';
-if ($tab === 'articles' && !ARTICLES_ENABLED) $tab = 'dashboard';
 $pending_reviews = count(array_filter($reviews, fn($r) => ($r['status'] ?? '') === 'pending'));
 $new_orders = count(array_filter($orders, fn($o) => ($o['type'] ?? 'order') !== 'request' && order_status($o) === 'new'));
 $new_requests = count(array_filter($orders, fn($o) => ($o['type'] ?? '') === 'request' && order_status($o) === 'new'));
@@ -90,8 +89,8 @@ $menu = [
     'Главное' => [['dashboard', 'Сводка', '', 0]],
     'Продажи' => [['orders', 'Заказы', '', $new_orders], ['orders&type=request', 'Заявки', '', $new_requests], ['customers', 'Клиенты', '', 0], ['promos', 'Промокоды', '', 0]],
     'Каталог' => [['products', 'Ароматы', '', 0], ['brands', 'Бренды', '', 0], ['collections', 'Подборки и SEO-страницы', '', 0], ['reviews', 'Отзывы', '', $pending_reviews]],
-    'Контент' => array_values(array_filter([ARTICLES_ENABLED ? ['articles', 'Библиотека парфюмера', '', 0] : null, ['pages', 'Страницы и документы', '', 0]])),
-    'Настройки' => [['settings&sub=home', 'Главная и тексты', '', 0], ['settings&sub=promo', 'Акции и бонусы', '', 0], ['settings&sub=seo', 'SEO', '', 0], ['settings&sub=contacts', 'Контакты и реквизиты', '', 0], ['settings&sub=access', 'Уведомления и доступ', '', 0]],
+    'Контент' => [['articles', 'Библиотека парфюмера', '', 0], ['pages', 'Страницы и документы', '', 0]],
+    'Настройки' => [['settings&sub=home', 'Главная и тексты', '', 0], ['settings&sub=promo', 'Акции и бонусы', '', 0], ['settings&sub=seo', 'SEO', '', 0], ['settings&sub=contacts', 'Контакты и реквизиты', '', 0], ['settings&sub=access', 'Уведомления и доступ', '', 0], ['settings&sub=closed', 'Закрыть сайт', '', 0]],
 ];
 $is_active = function (string $key) use ($tab) {
     parse_str('tab=' . $key, $q);
@@ -162,6 +161,9 @@ $display_products = array_slice($filtered_products, ($p_page - 1) * $per_page, $
       <div class="adm-topbar"><button type="button" class="adm-burger" onclick="document.getElementById('admSide').classList.toggle('is-open')">☰ Меню</button><span>Perfume Space · админка</span></div>
       <?php if (empty($config['admin_password_hash'])): ?>
         <div class="flash-banner flash-banner--warn">Вход по стандартному паролю. <a href="/admin.php?tab=settings&sub=access">Смените пароль</a> — это займёт минуту.</div>
+      <?php endif; ?>
+      <?php if (!empty($config['maintenance']['enabled'])): ?>
+        <div class="flash-banner flash-banner--warn">Сайт закрыт для посетителей — они видят заглушку «<?= h(($config['maintenance']['title'] ?? '') ?: 'Сайт скоро откроется') ?>». <a href="/admin.php?tab=settings&sub=closed">Открыть сайт</a></div>
       <?php endif; ?>
       <?php if ($flash !== ''): ?><div class="flash-banner"><?= h($flash) ?></div><?php endif; ?>
       <?php

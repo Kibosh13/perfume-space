@@ -151,7 +151,7 @@ function layout_start(array $m): void {
       </div>
       <a href="/brands/">Бренды</a>
       <a href="/category/">Подборки</a>
-      <?php if (ARTICLES_ENABLED): ?><a href="/statiy/">Статьи</a><?php endif; ?>
+      <?php if (articles_public()): ?><a href="/statiy/">Статьи</a><?php endif; ?>
       <a href="<?= $home ?>#promo">Акции</a>
       <a href="/original/">Оригинальность</a>
       <a href="/dostavka/">Доставка</a>
@@ -222,7 +222,7 @@ function layout_end(array $js = []): void {
           <li><a href="/category/bestsellers/">Хиты продаж</a></li>
           <li><a href="/brands/">Бренды</a></li>
           <li><a href="/category/">Все подборки</a></li>
-          <?php if (ARTICLES_ENABLED): ?><li><a href="/statiy/">Библиотека парфюмера</a></li><?php endif; ?>
+          <?php if (articles_public()): ?><li><a href="/statiy/">Библиотека парфюмера</a></li><?php endif; ?>
         </ul>
       </div>
       <div>

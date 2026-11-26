@@ -55,6 +55,28 @@ if ($act === 'save_settings') {
     $flash = 'Настройки сохранены.' . $pass_msg;
 }
 
+/* ---------- Видимость раздела статей ---------- */
+if ($act === 'articles_public') {
+    $config['articles_public'] = ($_POST['value'] ?? '') === '1';
+    save_site_config($config);
+    $flash = $config['articles_public'] ? 'Раздел статей теперь виден на сайте.' : 'Раздел статей скрыт с сайта.';
+}
+
+/* ---------- Режим «Сайт закрыт» ---------- */
+if ($act === 'save_maintenance') {
+    $m = (array)($config['maintenance'] ?? []);
+    $was = !empty($m['enabled']);
+    $m['enabled'] = !empty($_POST['enabled']);
+    $m['title'] = mb_substr(trim((string)($_POST['title'] ?? '')), 0, 150);
+    $m['text'] = mb_substr(trim((string)($_POST['text'] ?? '')), 0, 2000);
+    if (empty($m['token']) || !empty($_POST['new_token'])) $m['token'] = bin2hex(random_bytes(8));
+    $config['maintenance'] = $m;
+    save_site_config($config);
+    $flash = $m['enabled'] ? 'Сайт закрыт: посетители видят заглушку. Вы и владельцы ссылки предпросмотра видите сайт как обычно.'
+        : ($was ? 'Сайт снова открыт для всех.' : 'Сохранено. Сайт открыт для всех.');
+    if (!empty($_POST['new_token'])) $flash .= ' Создана новая ссылка предпросмотра — старая больше не работает.';
+}
+
 /* ---------- Заказы ---------- */
 if ($act === 'update_order') {
     $oid = trim((string)($_POST['order_id'] ?? ''));

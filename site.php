@@ -4,6 +4,7 @@
  * /aromat/{slug}/, /brand/{slug}/, /brands/, /category/, /category/{slug}/, /{страница}/, /catalog.js, /sitemap.xml
  */
 require_once __DIR__ . '/includes/layout.php';
+maintenance_gate();
 handle_legacy_redirects();
 
 $path = urldecode((string)parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH));
@@ -45,7 +46,7 @@ if ($route === 'brands' && count($parts) === 1) {
     require __DIR__ . '/includes/views/brands.php';
     exit;
 }
-if ($route === 'statiy' && !ARTICLES_ENABLED) {
+if ($route === 'statiy' && !articles_public() && !is_admin_session()) {
     require __DIR__ . '/404.php';
     exit;
 }

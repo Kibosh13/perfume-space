@@ -107,6 +107,14 @@ if ($edit !== null):
   <h1>Библиотека парфюмера</h1>
   <div style="display:flex;gap:8px"><a class="btn btn--line btn--sm" href="/statiy/" target="_blank">На сайте</a><a class="btn btn--primary btn--sm" href="/admin.php?tab=articles&slug=">+ Новая статья</a></div>
 </div>
+<form method="post" class="admin-card" style="display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between">
+  <input type="hidden" name="admin_action" value="articles_public">
+  <?php $pub = articles_public(); ?>
+  <div><b><?= $pub ? 'Раздел статей виден на сайте' : 'Раздел статей скрыт с сайта' ?></b>
+    <div class="muted small"><?= $pub ? 'Ссылки «Статьи» есть в меню и подвале, статьи попадают в карту сайта.' : 'Посетители его не видят. Можно спокойно писать и публиковать статьи — вы, пока вошли в админку, видите раздел на сайте.' ?></div></div>
+  <input type="hidden" name="value" value="<?= $pub ? '0' : '1' ?>">
+  <button type="submit" class="btn <?= $pub ? 'btn--line' : 'btn--primary' ?> btn--sm"><?= $pub ? 'Скрыть раздел с сайта' : 'Показать раздел на сайте' ?></button>
+</form>
 <section class="admin-card">
   <?php if (!$all): ?><p class="muted">Статей пока нет.</p><?php else: ?>
   <table class="admin-table">

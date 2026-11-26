@@ -1,7 +1,7 @@
 <?php
 /** Настройки сайта: главная и тексты, акции, SEO, контакты и реквизиты, уведомления и доступ */
 $sub = $_GET['sub'] ?? 'home';
-$subs = ['home' => 'Главная и тексты', 'promo' => 'Акции и бонусы', 'seo' => 'SEO', 'contacts' => 'Контакты и реквизиты', 'access' => 'Уведомления, аналитика, пароль'];
+$subs = ['home' => 'Главная и тексты', 'promo' => 'Акции и бонусы', 'seo' => 'SEO', 'contacts' => 'Контакты и реквизиты', 'access' => 'Уведомления, аналитика, пароль', 'closed' => 'Закрыть сайт'];
 if (!isset($subs[$sub])) $sub = 'home';
 $c = $config;
 $v = fn(string $path) => h((string)array_reduce(explode('.', $path), fn($carry, $k) => is_array($carry) ? ($carry[$k] ?? '') : '', $c));
@@ -27,6 +27,25 @@ $faq = $config['faq'] ?? $default_faq;
 <div class="seg-tabs">
   <?php foreach ($subs as $k => $l): ?><a href="/admin.php?tab=settings&sub=<?= $k ?>" class="<?= $sub === $k ? 'is-active' : '' ?>"><?= $l ?></a><?php endforeach; ?>
 </div>
+<?php if ($sub === 'closed'):
+    $mt = (array)($config['maintenance'] ?? []);
+    $preview = !empty($mt['token']) ? site_url() . '/?preview=' . $mt['token'] : '';
+?>
+<form method="post" class="admin-card form-grid settings-form">
+  <input type="hidden" name="admin_action" value="save_maintenance">
+  <h2>Временно закрыть сайт</h2>
+  <p class="muted">Пока сайт закрыт, посетители на любой странице видят заглушку с вашими контактами, а оформить заказ нельзя. Поисковики получают ответ «временно недоступен» и не выкидывают сайт из поиска. Вы, пока вошли в админку, видите сайт как обычно.</p>
+  <label class="check-line" style="font-size:16px;font-weight:600"><input type="checkbox" name="enabled" value="1" <?= !empty($mt['enabled']) ? 'checked' : '' ?>> Сайт закрыт для посетителей</label>
+  <div class="form-group"><label>Заголовок заглушки</label><input class="form-control" name="title" value="<?= h($mt['title'] ?? '') ?>" placeholder="Сайт скоро откроется"></div>
+  <div class="form-group"><label>Текст заглушки</label><textarea class="form-control" name="text" rows="3" placeholder="Мы готовим обновлённый магазин оригинальной парфюмерии на распив. Совсем скоро всё заработает — а пока с нами можно связаться напрямую."><?= h($mt['text'] ?? '') ?></textarea><small class="hint">Под текстом автоматически показываются телефон, мессенджеры и почта из «Контакты и реквизиты».</small></div>
+  <?php if ($preview): ?>
+  <div class="form-group"><label>Ссылка предпросмотра</label><input class="form-control" value="<?= h($preview) ?>" readonly onclick="this.select()"><small class="hint">Откройте её на любом устройстве — и там сайт будет виден, даже когда он закрыт (60 дней). Удобно, чтобы показать сайт кому-то без пароля от админки.</small></div>
+  <label class="check-line"><input type="checkbox" name="new_token" value="1"> Сделать новую ссылку предпросмотра (старая перестанет работать)</label>
+  <?php endif; ?>
+  <p><a href="/" target="_blank">Открыть сайт ↗</a> · чтобы увидеть заглушку глазами посетителя, откройте сайт в режиме инкогнито.</p>
+  <div class="sticky-save"><button type="submit" class="btn btn--primary">Сохранить</button></div>
+</form>
+<?php return; endif; ?>
 <form method="post" enctype="multipart/form-data" class="admin-card form-grid settings-form">
   <input type="hidden" name="admin_action" value="save_settings">
 
