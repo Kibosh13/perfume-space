@@ -13,10 +13,10 @@ define('ARTICLES_FILE', DATA_DIR . '/articles.json');
 
 /**
  * Раздел статей в админке доступен всегда, а на сайте (меню, подвал, карта сайта,
- * /statiy/) показывается, только когда в админке включено «Показывать раздел на сайте».
+ * /statiy/) показывается, пока его не скрыли кнопкой «Скрыть раздел с сайта» (по умолчанию — виден).
  */
 function articles_public(): bool {
-    return !empty(get_site_config()['articles_public']);
+    return (bool)(get_site_config()['articles_public'] ?? true);
 }
 
 function articles(bool $only_published = true): array {
